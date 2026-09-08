@@ -1,0 +1,597 @@
+/* ==========================================================================
+   ALTUS - Переиспользуемые компоненты
+   Шапка, кнопки, медиа, карточки, лайтбокс, форма, подвал.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. КНОПКИ
+   Контраст проверен: тёмный текст на синей заливке даёт 5.4:1 (AA).
+   Белый текст на этой же заливке дал бы 3.5:1 и не прошёл бы для body,
+   поэтому основная кнопка именно тёмная по тексту.
+   ========================================================================== */
+
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--text);
+  --btn-bd: var(--line-strong);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.4rem;
+  border: 1px solid var(--btn-bd);
+  border-radius: var(--r-md);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;          /* подпись кнопки никогда не переносится на 2 строки */
+  text-align: center;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+/* Обоснование движения: тактильный отклик на действие. */
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.985); }
+
+.btn--primary {
+  --btn-bg: var(--accent);
+  --btn-fg: var(--ink);
+  --btn-bd: var(--accent);
+}
+.btn--primary:hover { --btn-bg: var(--accent-hi); --btn-bd: var(--accent-hi); }
+.btn--primary:active { --btn-bg: var(--accent-lo); --btn-bd: var(--accent-lo); }
+
+.btn--ghost:hover { --btn-bd: var(--line-accent); background: var(--accent-wash); }
+
+.btn--sm { padding: 0.6rem 1rem; font-size: 0.875rem; }
+.btn--block { width: 100%; }
+
+.btn[disabled], .btn[aria-disabled='true'] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Текстовая ссылка со стрелкой */
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.link-arrow .icon { transition: transform var(--dur-fast) var(--ease-out); }
+.link-arrow:hover { color: var(--accent-hi); }
+.link-arrow:hover .icon { transform: translate(2px, -2px); }
+
+/* ==========================================================================
+   2. ШАПКА
+   Одна строка на десктопе, высота 72px (в лимите 80px).
+   ========================================================================== */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: rgb(11 15 22 / 0.82);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+/* Граница появляется только после отрыва от верха: подсказка о положении. */
+.header.is-stuck { border-bottom-color: var(--line); }
+
+/* Если браузер не умеет backdrop-filter, шапка остаётся читаемой заливкой. */
+@supports not (backdrop-filter: blur(1px)) {
+  .header { background: rgb(11 15 22 / 0.97); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .header { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+.header__bar {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+/* --- Слот под логотип заказчика -----------------------------------------
+   Логотип по договору предоставляет заказчик. Пока стоит текстовая
+   заглушка в фирменной гарнитуре. Замена: положить файл в
+   assets/img/logo.svg и раскомментировать <img> в разметке.              */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  flex: none;
+}
+.logo__mark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+.logo__img { height: 30px; width: auto; }
+.logo__sub {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--text-mute);
+  letter-spacing: 0;
+}
+
+.nav { display: flex; align-items: center; gap: 1.75rem; }
+.nav__link {
+  font-size: 0.925rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.nav__link:hover, .nav__link[aria-current='page'] { color: var(--text); }
+
+.header__cta { flex: none; }
+
+/* Кнопка внутри .nav нужна только в выдвижной панели на мобильном.
+   На десктопе действует .header__cta, иначе в шапке было бы две
+   одинаковые кнопки подряд. */
+@media (min-width: 1024px) {
+  .nav > .btn { display: none; }
+}
+
+/* В узком десктопном диапазоне меню уже показано, но места ещё мало:
+   поджимаем шаг и кегль, иначе на 1024px строка вылезает за экран. */
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .nav { gap: 1.15rem; }
+  .nav__link { font-size: 0.875rem; }
+  .header__bar { gap: 1rem; }
+}
+
+.nav-toggle { display: none; }
+
+/* Ниже 1024px меню уезжает в выдвижную панель: на десктопе шапка всегда
+   в одну строку, двухстрочной навигации не возникает. */
+@media (max-width: 1023px) {
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    background: transparent;
+  }
+  .header__cta { display: none; }
+
+  .nav {
+    position: fixed;
+    inset: 72px 0 auto 0;
+    z-index: var(--z-drawer);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem var(--shell-pad) 1.5rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow-lg);
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
+  }
+  .nav[hidden] { display: none; }
+  .nav__link {
+    padding: 1rem 0;
+    font-size: 1.05rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .nav .btn { margin-top: 1.25rem; }
+}
+
+/* ==========================================================================
+   3. МЕДИА
+   Обёртка для всех фотографий. Фиксированное соотношение сторон убирает
+   скачки вёрстки при загрузке (CLS).
+   ========================================================================== */
+
+.media {
+  display: block;          /* .media вешается и на span внутри кнопки, aspect-ratio нужен блочный бокс */
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  aspect-ratio: var(--ratio, 4 / 3);
+}
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Лёгкая холодная тонировка: приводит разнородные фотографии к одной
+   палитре страницы. На разделе «Наши работы» намеренно слабее, чтобы
+   реальные цвета неона читались как есть. */
+.media--tinted img { filter: saturate(0.72) contrast(1.04) brightness(0.94); }
+.media--tinted::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(200deg, rgb(46 134 255 / 0.16), rgb(11 15 22 / 0.42));
+  pointer-events: none;
+}
+
+/* Кнопка-обёртка вокруг фото: открывает лайтбокс. Именно <button>,
+   поэтому доступна с клавиатуры и объявляется скринридером. */
+.media-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: var(--r-lg);
+}
+.media-btn .media { transition: transform var(--dur) var(--ease); }
+.media-btn:hover .media { transform: scale(1.015); }
+
+/* Значок увеличения. Обоснование движения: подсказывает, что фото кликабельно. */
+.media-btn__zoom {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: var(--z-base);
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: var(--r-md);
+  background: rgb(11 15 22 / 0.72);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.media-btn:hover .media-btn__zoom,
+.media-btn:focus-visible .media-btn__zoom { opacity: 1; transform: none; }
+
+/* На тач-устройствах hover не наступает: значок показываем сразу. */
+@media (hover: none) {
+  .media-btn__zoom { opacity: 1; transform: none; }
+}
+
+/* ==========================================================================
+   4. ЛАЙТБОКС
+   ОДИН компонент на весь сайт: услуги, работы, сканы благодарственных писем.
+   Построен на <dialog>: фокус-трап, Esc и возврат фокуса работают нативно.
+   ========================================================================== */
+
+.lightbox {
+  width: min(1120px, 100vw - 2rem);
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.lightbox::backdrop {
+  background: rgb(4 8 16 / 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Обоснование движения: переход состояния, связывает миниатюру и полный вид. */
+.lightbox[open] { animation: lb-in var(--dur) var(--ease); }
+.lightbox[open]::backdrop { animation: lb-fade var(--dur) var(--ease-out); }
+@keyframes lb-in   { from { opacity: 0; transform: scale(0.97) translateY(10px); } }
+@keyframes lb-fade { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox[open], .lightbox[open]::backdrop { animation: none; }
+}
+
+.lightbox__inner {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 2rem);
+}
+
+.lightbox__stage {
+  position: relative;
+  background: var(--stage);
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.lightbox__img {
+  max-width: 100%;
+  max-height: min(72vh, calc(100dvh - 14rem));
+  width: auto;
+  object-fit: contain;
+}
+
+/* Подпись под фото: описание работы или контекст письма. */
+.lightbox__caption {
+  flex: none;
+  padding: 1.15rem 1.35rem 1.35rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.lightbox__caption:empty { display: none; }
+.lightbox__title { font-weight: 600; font-size: 1.02rem; }
+.lightbox__text { margin-top: 0.4rem; color: var(--text-dim); font-size: 0.925rem; max-width: 80ch; }
+
+.lightbox__bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: linear-gradient(rgb(4 8 16 / 0.75), transparent);
+}
+
+.lightbox__btn {
+  display: grid;
+  place-items: center;
+  width: 42px; height: 42px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line-strong);
+  background: rgb(11 15 22 / 0.78);
+  color: var(--text);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.lightbox__btn:hover { background: var(--surface-3); border-color: var(--line-accent); }
+.lightbox__btn[hidden] { display: none; }
+
+.lightbox__count {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  padding: 0 0.4rem;
+}
+
+.lightbox__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--z-base);
+}
+.lightbox__nav--prev { left: 0.75rem; }
+.lightbox__nav--next { right: 0.75rem; }
+
+@media (max-width: 640px) {
+  .lightbox { width: 100vw; max-height: 100dvh; border-radius: 0; border: 0; }
+  .lightbox__inner { max-height: 100dvh; }
+  .lightbox__img { max-height: min(60vh, calc(100dvh - 16rem)); }
+  .lightbox__nav { top: auto; bottom: 0.75rem; transform: none; }
+}
+
+/* ==========================================================================
+   5. ФОРМА
+   Label над полем. Подсказка в разметке. Ошибка под полем.
+   Плейсхолдер не заменяет label ни в одном поле.
+   ========================================================================== */
+
+.field { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.field__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.field__label .req { color: var(--accent); margin-left: 0.15rem; }
+
+.field__hint { font-size: 0.825rem; color: var(--text-mute); }
+
+.input, .textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.textarea { min-height: 132px; resize: vertical; }
+
+/* Плейсхолдер: 4.7:1 на фоне поля, проходит AA. */
+.input::placeholder, .textarea::placeholder { color: var(--text-mute); opacity: 1; }
+
+.input:hover, .textarea:hover { border-color: var(--line-accent); }
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface-3);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.input[aria-invalid='true'], .textarea[aria-invalid='true'] { border-color: var(--danger); }
+.input[aria-invalid='true']:focus, .textarea[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 3px rgb(255 107 107 / 0.35);
+}
+
+/* Автозаполнение браузера не должно возвращать светлый фон */
+.input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text);
+  box-shadow: 0 0 0 1000px var(--surface-2) inset;
+}
+
+/* Текст ошибки под полем */
+.field__error {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--danger);
+}
+.field__error .icon { width: 1rem; height: 1rem; }
+.field.is-invalid .field__error { display: flex; }
+
+/* Чекбокс согласия */
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+/* Нативный чекбокс в тёмной теме остаётся светлым прямоугольником и выбивается
+   из панели, поэтому рисуем свой на той же палитре. */
+.check input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  margin: 0.1rem 0 0;
+  flex: none;
+  display: grid;
+  place-content: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.check input::before {
+  content: '';
+  width: 11px; height: 11px;
+  background: var(--ink);
+  transform: scale(0);
+  transition: transform var(--dur-fast) var(--ease-out);
+  /* галочка формой, а не отдельной картинкой */
+  clip-path: polygon(14% 47%, 0 62%, 40% 100%, 100% 20%, 84% 7%, 38% 69%);
+}
+.check input:checked { background: var(--accent); border-color: var(--accent); }
+.check input:checked::before { transform: scale(1); }
+.check input:hover { border-color: var(--line-accent); }
+.check input[aria-invalid='true'] { border-color: var(--danger); }
+.check a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Состояния отправки */
+.form__status {
+  display: none;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+  border: 1px solid;
+}
+.form__status.is-visible { display: flex; }
+.form__status--success { color: var(--success); border-color: rgb(74 222 155 / 0.4); background: rgb(74 222 155 / 0.08); }
+.form__status--error   { color: var(--danger);  border-color: rgb(255 107 107 / 0.4); background: rgb(255 107 107 / 0.08); }
+
+/* Спиннер в кнопке на время отправки. Обоснование: отклик на действие. */
+.btn__spinner { display: none; }
+.form.is-loading .btn__spinner { display: block; animation: spin 900ms linear infinite; }
+.form.is-loading .btn__label { opacity: 0.75; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .form.is-loading .btn__spinner { animation: none; }
+}
+
+/* Скелетон на время загрузки. Форму скелетоном не закрываем, он нужен
+   для блоков, которые в проде приедут с бэкенда. */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--r-md);
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+/* Пустое состояние списка */
+.empty {
+  padding: clamp(2rem, 5vw, 3.5rem);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-lg);
+  text-align: center;
+  color: var(--text-dim);
+}
+.empty .icon { width: 2rem; height: 2rem; color: var(--text-mute); margin: 0 auto 0.85rem; }
+
+/* ==========================================================================
+   6. ПОДВАЛ
+   ========================================================================== */
+
+.footer {
+  border-top: 1px solid var(--line);
+  padding-block: clamp(3rem, 6vw, 4.5rem) 2rem;
+  background: var(--surface);
+}
+.footer__grid {
+  display: grid;
+  gap: 2.5rem clamp(1.5rem, 4vw, 4rem);
+  grid-template-columns: 1.4fr 1fr 1fr;
+}
+.footer__title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-mute);
+  margin-bottom: 1rem;
+}
+.footer__list { display: grid; gap: 0.7rem; }
+.footer__list a { color: var(--text-dim); font-size: 0.925rem; }
+.footer__list a:hover { color: var(--text); }
+
+.footer__bottom {
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+  font-size: 0.825rem;
+  color: var(--text-mute);
+}
+
+@media (max-width: 860px) {
+  .footer__grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .footer__grid { grid-template-columns: 1fr; }
+}
+
+/* Соцсети */
+.socials { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.social {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.95rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.social:hover { color: var(--text); border-color: var(--line-accent); background: var(--accent-wash); }
