@@ -83,12 +83,9 @@
     });
   }
 
-  /* Путь к спрайту берём от базового тега страницы: страницы блога лежат
-     на два уровня глубже корня, а спрайт один. */
-  function spriteBase() {
-    var root = document.documentElement.getAttribute('data-root') || '';
-    return root + 'assets/icons/sprite.svg';
-  }
+  /* Спрайт встроен в страницу, поэтому ссылаемся локальным якорем.
+     Внешний файл браузер блокирует при открытии по file://. */
+  function spriteBase() { return ''; }
 
   function render() {
     var el = group[index];

@@ -115,10 +115,8 @@
 
   function hideStatus() { status.className = 'form__status'; }
 
-  function spriteHref(id) {
-    var root = document.documentElement.getAttribute('data-root') || '';
-    return root + 'assets/icons/sprite.svg#' + id;
-  }
+  /* Спрайт встроен в страницу: ссылаемся локальным якорем. */
+  function spriteHref(id) { return '#' + id; }
 
   function setLoading(on) {
     form.classList.toggle('is-loading', on);

@@ -232,3 +232,7 @@ a { color: inherit; text-decoration: none; }
   .js [data-reveal],
   .js [data-reveal].is-in { opacity: 1; transform: none; }
 }
+
+/* Спрайт иконок встроен в начало <body> как источник <symbol> и сам
+   не рисуется. Скрываем классом, а не инлайновым style. */
+.icon-sprite { display: none; }
