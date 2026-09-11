@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Производство и монтаж вывесок в Екатеринбурге. РПГ Альтус</title>
 <meta name="description" content="ООО «Альтус»: объёмные буквы, световые короба, крышные установки, оформление витрин, монтаж и высотные работы, ростовые фигуры, брендирование авто. Екатеринбург.">
-<meta name="theme-color" content="#0C0C11">
+<meta name="theme-color" content="#0B0D10">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="РПГ Альтус. Производство и монтаж вывесок в Екатеринбурге">
@@ -75,16 +75,14 @@
 <header class="header" data-header>
   <div class="shell header__bar">
 
-    <!-- СЛОТ ПОД НОВЫЙ ЛОГОТИП (щит со львом).
-         Файл логотипа в переписку не прикрепился, дошли только PDF договора
-         и архив старого сайта. Пока стоит наборная версия в фирменной
-         гарнитуре, старый логотип со слоном убран: он больше не актуален.
-         ЗАМЕНА: положить квадратный знак в assets/img/logo-mark.png
-         (от 240px по стороне, PNG с прозрачностью или SVG) и
-         раскомментировать строку ниже. Логотип синий на почти чёрном,
-         поэтому на тёмном фоне сайта он пойдёт как есть, без перекраски. -->
+    <!-- ЛОГОТИП ЗАКАЗЧИКА: щит со львом, присланный файл.
+         Из исходника убрана белая подложка на весь холст, чтобы знак лёг
+         на тёмный фон без белого квадрата. Перекраска не нужна: логотип и
+         так синий с белой графикой. Вектор-оригинал лежит рядом,
+         assets/img/logo-mark.svg, он для крупных мест и печати;
+         страница грузит PNG 358x372, его хватает на 40px при DPR 3. -->
     <a class="logo" href="index.html" aria-label="Альтус, на главную">
-      <img class="logo__mark" src="assets/img/logo-mark.png" alt="" width="120" height="126" data-logo-mark>
+      <img class="logo__mark" src="assets/img/logo-mark.png" alt="" width="358" height="372" data-logo-mark>
       <span>АЛЬТУС<span class="logo__sub">рекламно-производственная группа</span></span>
     </a>
 
@@ -1235,13 +1233,25 @@
 
     </div>
 
+    <!-- Карта подгружается по нажатию. Виджет Яндекса всегда светлый, и
+         постоянно открытым он выглядит как белая врезка в тёмной странице,
+         а по ТЗ секции не инвертируются. Побочная польза: сторонний iframe
+         не приходит на страницу, пока его не попросили. Адрес читается
+         и без нажатия, в подписи под картой. -->
     <div class="map">
-      <iframe
-        src="https://yandex.ru/map-widget/v1/?text=%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B1%D1%83%D1%80%D0%B3%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%94%D0%B0%D0%BD%D0%B8%D0%BB%D1%8B%20%D0%97%D0%B2%D0%B5%D1%80%D0%B5%D0%B2%D0%B0%2C%2023&amp;z=17"
-        title="Карта: Екатеринбург, улица Данилы Зверева, 23"
-        loading="lazy"
-        allowfullscreen></iframe>
-      <p class="map__note">Екатеринбург, улица Данилы Зверева, 23, офис 311.</p>
+      <button class="map__cover" type="button"
+              data-map-src="https://yandex.ru/map-widget/v1/?text=%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B1%D1%83%D1%80%D0%B3%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%94%D0%B0%D0%BD%D0%B8%D0%BB%D1%8B%20%D0%97%D0%B2%D0%B5%D1%80%D0%B5%D0%B2%D0%B0%2C%2023&amp;z=17"
+              data-map-title="Карта: Екатеринбург, улица Данилы Зверева, 23">
+        <span class="map__pin" aria-hidden="true">
+          <svg class="icon" aria-hidden="true"><use href="#i-map-pin"></use></svg>
+        </span>
+        <span class="map__cta">Показать карту</span>
+        <span class="map__sub">Яндекс Карты, откроются здесь же</span>
+      </button>
+      <p class="map__note">
+        Екатеринбург, улица Данилы Зверева, 23, офис 311.
+        <a class="map__link" href="https://yandex.ru/maps/?text=%D0%95%D0%BA%D0%B0%D1%82%D0%B5%D1%80%D0%B8%D0%BD%D0%B1%D1%83%D1%80%D0%B3%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%94%D0%B0%D0%BD%D0%B8%D0%BB%D1%8B%20%D0%97%D0%B2%D0%B5%D1%80%D0%B5%D0%B2%D0%B0%2C%2023&amp;z=17" target="_blank" rel="noopener">Проложить маршрут<svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg></a>
+      </p>
     </div>
 
   </div>
@@ -1255,7 +1265,7 @@
 
       <div>
         <a class="logo" href="index.html" aria-label="Альтус, на главную">
-          <img class="logo__mark" src="assets/img/logo-mark.png" alt="" width="120" height="126" data-logo-mark>
+          <img class="logo__mark" src="assets/img/logo-mark.png" alt="" width="358" height="372" data-logo-mark>
           <span>АЛЬТУС<span class="logo__sub">рекламно-производственная группа</span></span>
         </a>
         <p class="meta u-mt-4 u-narrow">

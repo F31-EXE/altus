@@ -47,7 +47,7 @@
       '            allowfullscreen hidden></iframe>',
       '    <div class="lightbox__bar">',
       '      <span class="lightbox__count" data-lb-el="count"></span>',
-      '      <button type="button" class="lightbox__btn" data-lb-el="close" aria-label="Закрыть">',
+      '      <button type="button" class="lightbox__btn" data-lb-el="close" aria-label="Закрыть" autofocus>',
       '        <svg class="icon" aria-hidden="true"><use href="' + spriteBase() + '#i-x"></use></svg>',
       '      </button>',
       '    </div>',
@@ -82,9 +82,11 @@
     });
 
     dialog.addEventListener('keydown', function (e) {
-      /* Внутри плеера стрелки перематывают запись, поэтому листаем галерею
-         только когда фокус не на элементах управления видео. */
-      if (e.target === els.video) return;
+      /* У своего плеера стрелки перематывают запись, поэтому на нём галерею
+         не листаем. У внешнего плеера нажатия остаются внутри iframe и до нас
+         не доходят, так что его ограничивать незачем. Смотрим на вид текущего
+         элемента, а не на e.target: иначе случайный фокус отключает стрелки. */
+      if (kindOf(group[index]) === 'video') return;
       if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
     });

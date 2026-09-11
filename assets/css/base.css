@@ -79,6 +79,13 @@ body {
 img, svg, video, iframe { display: block; max-width: 100%; }
 img, video { height: auto; }
 
+/* Строка выше объявляет display у медиа и тем самым перебивает [hidden] из
+   таблицы браузера: у селектора по атрибуту вес выше, чем у селектора по
+   тегу. Возвращаем атрибуту силу. Без этого спрятанный <video> в лайтбоксе
+   остаётся в потоке, забирает фокус при showModal и ломает листание
+   галереи стрелками. */
+[hidden] { display: none; }
+
 button, input, textarea, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 

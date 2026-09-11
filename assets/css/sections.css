@@ -488,18 +488,68 @@ a.contact-item__value:hover { color: var(--accent-hi); }
   overflow: hidden;
   background: var(--surface-2);
 }
-.map iframe {
+/* Заглушка и сама карта одной высоты, поэтому при загрузке блок не прыгает. */
+.map iframe,
+.map__cover {
   width: 100%;
-  height: clamp(300px, 42vw, 460px);
+  height: clamp(260px, 32vw, 380px);
+  display: block;
   border: 0;
-  filter: saturate(0.8) brightness(0.92) contrast(1.02);
 }
+.map iframe { filter: saturate(0.8) brightness(0.92) contrast(1.02); }
+
+.map__cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--surface-2);
+  color: var(--text);
+  text-align: center;
+  padding: 1.5rem;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.map__cover:hover { background: var(--surface-3); }
+
+.map__pin {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--accent-wash);
+  color: var(--accent);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.map__cover:hover .map__pin { transform: translateY(-2px); }
+
+.map__cta {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.map__sub { font-size: 0.85rem; color: var(--text-mute); }
+
 .map__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
   padding: 0.85rem 1.15rem;
   border-top: 1px solid var(--line);
   font-size: 0.85rem;
   color: var(--text-mute);
 }
+.map__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: auto;
+  color: var(--accent);
+}
+.map__link:hover { color: var(--accent-hi); }
+.map__link .icon { width: 1em; height: 1em; }
 
 /* ==========================================================================
    8. СТРАНИЦЫ БЛОГА
