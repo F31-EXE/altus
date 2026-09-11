@@ -16,6 +16,18 @@
   /* Класс на <html> нужен, чтобы без JS контент не оставался скрытым. */
   document.documentElement.classList.add('js');
 
+  /* --- 0. Логотип ---------------------------------------------------------
+     Картинка знака стоит в разметке по-настоящему. Если файла ещё нет,
+     убираем её, чтобы не висела иконка битого изображения: остаётся
+     наборная надпись «АЛЬТУС». Так заказчику достаточно положить файл
+     в assets/img/logo-mark.png, править разметку не нужно.               */
+  (function logo() {
+    document.querySelectorAll('[data-logo-mark]').forEach(function (img) {
+      if (img.complete && img.naturalWidth === 0) { img.remove(); return; }
+      img.addEventListener('error', function () { img.remove(); });
+    });
+  })();
+
   /* --- 1. Мобильное меню -------------------------------------------------- */
   (function nav() {
     var toggle = document.querySelector('[data-nav-toggle]');
