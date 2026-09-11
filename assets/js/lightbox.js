@@ -6,12 +6,17 @@
      - «Отзывы»       скан оригинала благодарственного письма
      - статьи блога   увеличение иллюстраций
 
+   Открывает три вида содержимого, тип определяется атрибутом:
+     data-lb-src   ="/path/big.jpg"   фотография
+     data-lb-video ="/path/clip.mp4"  свой видеофайл, играет через <video>
+     data-lb-embed ="https://..."     внешний плеер (VK Видео, YouTube, Rutube)
+
    Разметка триггера, любой элемент:
      <button class="media-btn"
-             data-lb-src="/path/big.jpg"      обязательный, полноразмерный файл
+             data-lb-src="/path/big.jpg"      один из трёх выше, обязателен
              data-lb-alt="alt для доступности"
              data-lb-title="Заголовок"        необязательный
-             data-lb-text="Описание"          необязательный, встаёт под фото
+             data-lb-text="Описание"          необязательный, встаёт под медиа
              data-lb-group="works">           необязательный, объединяет в галерею
 
    Построен на <dialog>.showModal(): фокус-трап, закрытие по Esc и возврат
@@ -21,7 +26,7 @@
 (function () {
   'use strict';
 
-  var SELECTOR = '[data-lb-src]';
+  var SELECTOR = '[data-lb-src], [data-lb-video], [data-lb-embed]';
   var dialog = null;
   var els = {};
   var group = [];      // текущая галерея
@@ -36,6 +41,10 @@
       '<div class="lightbox__inner">',
       '  <div class="lightbox__stage">',
       '    <img class="lightbox__img" alt="" data-lb-el="img">',
+      '    <video class="lightbox__video" data-lb-el="video" controls playsinline preload="metadata" hidden></video>',
+      '    <iframe class="lightbox__embed" data-lb-el="embed" title="Видео"',
+      '            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"',
+      '            allowfullscreen hidden></iframe>',
       '    <div class="lightbox__bar">',
       '      <span class="lightbox__count" data-lb-el="count"></span>',
       '      <button type="button" class="lightbox__btn" data-lb-el="close" aria-label="Закрыть">',
@@ -73,6 +82,9 @@
     });
 
     dialog.addEventListener('keydown', function (e) {
+      /* Внутри плеера стрелки перематывают запись, поэтому листаем галерею
+         только когда фокус не на элементах управления видео. */
+      if (e.target === els.video) return;
       if (e.key === 'ArrowLeft')  { e.preventDefault(); step(-1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
     });
@@ -80,6 +92,7 @@
     /* Esc обрабатывает браузер, нам остаётся снять блокировку прокрутки. */
     dialog.addEventListener('close', function () {
       document.documentElement.style.overflow = '';
+      stopPlayback();
     });
   }
 
@@ -87,29 +100,75 @@
      Внешний файл браузер блокирует при открытии по file://. */
   function spriteBase() { return ''; }
 
+  /* Видео и внешний плеер надо именно останавливать и выгружать источник.
+     Если этого не сделать, звук продолжает играть после закрытия окна. */
+  function stopPlayback() {
+    if (els.video) {
+      els.video.pause();
+      els.video.removeAttribute('src');
+      els.video.load();
+      els.video.hidden = true;
+    }
+    if (els.embed) {
+      els.embed.removeAttribute('src');
+      els.embed.hidden = true;
+    }
+  }
+
+  function kindOf(el) {
+    if (el.hasAttribute('data-lb-video')) return 'video';
+    if (el.hasAttribute('data-lb-embed')) return 'embed';
+    return 'image';
+  }
+
   function render() {
     var el = group[index];
-    var src = el.getAttribute('data-lb-src');
+    var kind = kindOf(el);
     var title = el.getAttribute('data-lb-title') || '';
     var text = el.getAttribute('data-lb-text') || '';
 
-    /* Состояние загрузки: пока файл не пришёл, показываем мерцающую заглушку
-       вместо пустого места или сломанной иконки. */
-    els.img.classList.add('skeleton');
-    els.img.removeAttribute('src');
-    els.img.alt = el.getAttribute('data-lb-alt') || title;
+    stopPlayback();
+    els.img.hidden = true;
+    els.img.classList.remove('skeleton');
 
-    var probe = new Image();
-    probe.onload = function () {
-      els.img.src = src;
-      els.img.classList.remove('skeleton');
-    };
-    probe.onerror = function () {
-      els.img.classList.remove('skeleton');
-      els.img.alt = 'Не удалось загрузить изображение';
-      els.caption.innerHTML = '<p class="lightbox__text">Изображение недоступно. Обновите страницу или попробуйте позже.</p>';
-    };
-    probe.src = src;
+    if (kind === 'image') {
+      var src = el.getAttribute('data-lb-src');
+      els.img.hidden = false;
+      /* Состояние загрузки: пока файл не пришёл, показываем мерцающую заглушку
+         вместо пустого места или сломанной иконки. */
+      els.img.classList.add('skeleton');
+      els.img.removeAttribute('src');
+      els.img.alt = el.getAttribute('data-lb-alt') || title;
+
+      var probe = new Image();
+      probe.onload = function () {
+        els.img.src = src;
+        els.img.classList.remove('skeleton');
+      };
+      probe.onerror = function () {
+        els.img.classList.remove('skeleton');
+        els.img.alt = 'Не удалось загрузить изображение';
+        els.caption.innerHTML = '<p class="lightbox__text">Изображение недоступно. Обновите страницу или попробуйте позже.</p>';
+      };
+      probe.src = src;
+
+    } else if (kind === 'video') {
+      els.video.hidden = false;
+      var poster = el.getAttribute('data-lb-poster');
+      if (poster) els.video.setAttribute('poster', poster);
+      else els.video.removeAttribute('poster');
+      els.video.src = el.getAttribute('data-lb-video');
+      els.video.currentTime = 0;
+      /* Браузер вправе отказать в автозапуске. Это не ошибка: у плеера есть
+         элементы управления, человек нажмёт play сам. */
+      var pl = els.video.play();
+      if (pl && pl.catch) pl.catch(function () {});
+
+    } else {
+      els.embed.hidden = false;
+      els.embed.src = el.getAttribute('data-lb-embed');
+      els.embed.title = title || 'Видео';
+    }
 
     var html = '';
     if (title) html += '<p class="lightbox__title">' + esc(title) + '</p>';
@@ -125,10 +184,14 @@
     preload(index - 1);
   }
 
+  /* Предзагружаем только соседние фотографии. Видео заранее тянуть незачем:
+     это десятки мегабайт трафика за кадры, которые могут не понадобиться. */
   function preload(i) {
     if (i < 0 || i >= group.length) return;
-    var s = group[i].getAttribute('data-lb-src');
-    if (s) { var im = new Image(); im.src = s; }
+    var el = group[i];
+    if (kindOf(el) !== 'image') return;
+    var im = new Image();
+    im.src = el.getAttribute('data-lb-src');
   }
 
   function step(dir) {
@@ -140,7 +203,8 @@
   function open(trigger) {
     var name = trigger.getAttribute('data-lb-group');
     group = name
-      ? Array.prototype.slice.call(document.querySelectorAll('[data-lb-group="' + name + '"]'))
+      ? Array.prototype.slice.call(document.querySelectorAll(
+          '[data-lb-group="' + name + '"]'))
       : [trigger];
     index = Math.max(0, group.indexOf(trigger));
 

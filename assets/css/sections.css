@@ -1,13 +1,15 @@
 /* ==========================================================================
    ALTUS - Раскладки секций
-   Семь непохожих layout-семейств, по одному на секцию:
+   Девять непохожих layout-семейств, по одному на секцию:
      1 hero      асимметричный сплит со смещением медиа по вертикали
      2 услуги    12-колоночная сетка с разными пролётами и двумя широкими карточками
      3 ход работы липкая колонка слева и вертикальный рельс справа
-     4 работы    мозаика с разными пролётами и пропорциями
-     5 отзывы    горизонтальный ряд со scroll-snap
-     6 блог      одна крупная запись плюс стопка мелких
-     7 контакты  сплит «инфо и форма» плюс карта во всю ширину
+     4 о нас     полоса фото во всю ширину окна плюс наезжающая карточка
+     5 работы    мозаика с разными пролётами и пропорциями
+     6 видео     равномерная сетка 16 к 9
+     7 отзывы    горизонтальный ряд со scroll-snap
+     8 блог      одна крупная запись плюс стопка мелких
+     9 контакты  сплит «инфо и форма» плюс карта во всю ширину
    Ни одно семейство не повторяется. Подряд идущих сплитов «картинка и текст»
    больше двух не встречается.
    ========================================================================== */
@@ -593,3 +595,112 @@ a.contact-item__value:hover { color: var(--accent-hi); }
 
 /* Секция сразу под шапкой страницы: верхний отступ уже задан .page-head */
 .section--flush { padding-top: 0; }
+
+
+/* ==========================================================================
+   9. О НАС
+   Семейство раскладки: полоса фотографий во всю ширину окна и текстовая
+   карточка, наезжающая на её нижний край. Больше нигде на сайте такого нет.
+   ========================================================================== */
+
+.about__band {
+  /* Выход за пределы .shell на всю ширину окна. У body стоит overflow-x: clip,
+     поэтому горизонтальной прокрутки от этого не возникает. */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.about__band .media { --ratio: 4 / 3; border-radius: 0; }
+
+.about__card {
+  position: relative;
+  z-index: var(--z-base);
+  margin-top: clamp(-4.5rem, -6vw, -2rem);
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+.about__text > p + p { margin-top: 1rem; }
+.about__text p { color: var(--text-dim); }
+
+/* Три факта с сайта заказчика. Не карточки: достаточно линии и отступа. */
+.about__facts { display: grid; gap: 1.1rem; }
+.about__fact {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  align-items: start;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+.about__fact:first-child { padding-top: 0; border-top: 0; }
+.about__fact .icon { color: var(--accent); margin-top: 0.15rem; }
+.about__fact b { display: block; font-weight: 600; font-size: 0.98rem; }
+.about__fact span { font-size: 0.9rem; color: var(--text-mute); }
+
+@media (max-width: 900px) {
+  .about__card { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  /* На узком экране три кадра в ряд превращаются в марки: оставляем один. */
+  .about__band { grid-template-columns: 1fr; gap: 0; }
+  .about__band .media:nth-child(n+2) { display: none; }
+  .about__band .media { --ratio: 16 / 10; }
+}
+
+/* ==========================================================================
+   10. ВИДЕО
+   Семейство раскладки: равномерная сетка 16 к 9. Отличается и от мозаики
+   работ, и от блога: здесь все плитки одного размера, потому что у видео
+   один естественный формат кадра.
+   ========================================================================== */
+
+.video__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+}
+.vid { display: flex; flex-direction: column; gap: 0.85rem; }
+.vid .media { --ratio: 16 / 9; }
+
+/* Бейдж воспроизведения. Обоснование: без него постер не отличить
+   от обычной фотографии. */
+.vid__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.vid__play span {
+  display: grid;
+  place-items: center;
+  width: 64px; height: 64px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--dur) var(--ease), background var(--dur-fast) var(--ease-out);
+}
+.media-btn:hover .vid__play span { transform: scale(1.08); background: var(--accent-hi); }
+.vid__play svg { width: 26px; height: 26px; margin-left: 3px; }
+
+.vid__caption { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.vid__name { font-weight: 600; font-size: 0.98rem; }
+.vid__meta { font-size: 0.85rem; color: var(--text-mute); white-space: nowrap; }
+
+/* Пустое состояние занимает всю сетку, а не одну ячейку из двух:
+   иначе сообщение висит в левой половине и выглядит как сломанная плитка. */
+.video__grid .empty { grid-column: 1 / -1; }
+
+@media (max-width: 720px) {
+  .video__grid { grid-template-columns: 1fr; }
+}
