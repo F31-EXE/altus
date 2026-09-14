@@ -50,6 +50,21 @@
 
 .btn--ghost:hover { --btn-bd: var(--line-accent); background: var(--accent-wash); }
 
+/* Обводка акцентом: тот же размер, что у основной кнопки, но пустая внутри.
+   Нужна там, где действие второстепенное рядом с «Обсудить проект»:
+   вес формы тот же, вес заливки нет. */
+.btn--outline {
+  --btn-bg: transparent;
+  --btn-fg: var(--accent);
+  --btn-bd: var(--accent);
+}
+.btn--outline:hover {
+  --btn-bg: var(--accent-wash);
+  --btn-fg: var(--accent-hi);
+  --btn-bd: var(--accent-hi);
+}
+.btn--outline:active { --btn-fg: var(--accent-lo); --btn-bd: var(--accent-lo); }
+
 .btn--sm { padding: 0.6rem 1rem; font-size: 0.875rem; }
 .btn--block { width: 100%; }
 
@@ -362,8 +377,13 @@
 }
 
 /* Подпись под фото: описание работы или контекст письма. */
+/* Подпись умеет быть длинной: в окно услуги уходит всё её описание.
+   Поэтому подпись может сжиматься и прокручиваться сама, а не выталкивать
+   медиа за край экрана. */
 .lightbox__caption {
-  flex: none;
+  flex: 0 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.15rem 1.35rem 1.35rem;
   border-top: 1px solid var(--line);
   background: var(--surface);
@@ -371,6 +391,7 @@
 .lightbox__caption:empty { display: none; }
 .lightbox__title { font-weight: 600; font-size: 1.02rem; }
 .lightbox__text { margin-top: 0.4rem; color: var(--text-dim); font-size: 0.925rem; max-width: 80ch; }
+.lightbox__text + .lightbox__text { margin-top: 0.75rem; }
 
 .lightbox__bar {
   position: absolute;

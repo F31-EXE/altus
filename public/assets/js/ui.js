@@ -110,26 +110,9 @@
     });
   })();
 
-  /* --- 4. «Показать полностью» -------------------------------------------
-     Кнопка появляется только если у услуги есть скрытая часть текста.      */
-  (function disclosure() {
-    document.querySelectorAll('[data-disclosure]').forEach(function (btn) {
-      var panel = document.getElementById(btn.getAttribute('aria-controls'));
-      if (!panel) return;
-
-      var label = btn.querySelector('[data-disclosure-label]');
-      var openText = btn.getAttribute('data-label-open') || 'Показать полностью';
-      var closeText = btn.getAttribute('data-label-close') || 'Свернуть';
-
-      btn.addEventListener('click', function () {
-        var open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!open));
-        panel.classList.toggle('is-open', !open);
-        panel.setAttribute('aria-hidden', String(open));
-        if (label) label.textContent = open ? openText : closeText;
-      });
-    });
-  })();
+  /* Шторки «Показать полностью» здесь больше нет: полное описание услуги
+     открывает лайтбокс, кнопка в карточке размечена его же атрибутами
+     (см. assets/js/lightbox.js), своего кода разделу не нужно.             */
 
   /* --- 5. Уведомление о cookie ---------------------------------------------
      Показываем только тем, кто ещё не закрывал. Отметка лежит в localStorage,

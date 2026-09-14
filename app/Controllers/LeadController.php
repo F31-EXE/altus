@@ -57,7 +57,11 @@ final class LeadController extends Controller
             'name'    => 'required|string|minlen:2|maxlen:200',
             'phone'   => 'required|string|minlen:6|maxlen:50',
             'contact' => 'string|maxlen:200',
-            'message' => 'required|string|minlen:5|maxlen:5000',
+            /* Без required: обязательны только имя и телефон. Остального
+               достаточно спросить по телефону, а лишнее обязательное поле
+               стоит заявок. Пустая строка в NOT NULL проходит, менять
+               схему и мигрировать уже поднятые базы не нужно. */
+            'message' => 'string|maxlen:5000',
         ], [
             'name'    => 'Имя',
             'phone'   => 'Телефон',
@@ -125,7 +129,7 @@ final class LeadController extends Controller
             'Связь:    ' . ($input['contact'] !== '' ? $input['contact'] : 'не указана'),
             '',
             'Что нужно сделать:',
-            $input['message'],
+            $input['message'] !== '' ? $input['message'] : 'не указано, нужно перезвонить и расспросить',
             '',
             '--',
             'Отправлено формой на сайте. Заявка также сохранена в панели управления.',

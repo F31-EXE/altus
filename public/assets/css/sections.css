@@ -181,19 +181,10 @@
 
 .svc__lead { color: var(--text-dim); font-size: 0.95rem; }
 
-/* Раскрытие длинного текста. Обоснование движения: переход состояния,
-   показывает, что блок вырос, а не подменился. */
-.svc__more {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows var(--dur) var(--ease);
-}
-.svc__more > div { overflow: hidden; min-height: 0; }
-.svc__more.is-open { grid-template-rows: 1fr; }
-.svc__more p { color: var(--text-dim); font-size: 0.95rem; }
-.svc__more p + p { margin-top: 0.8rem; }
-
-.disclosure {
+/* Кнопка в подвал карточки: полный текст открывается модальным окном.
+   margin-top:auto прижимает её вниз, поэтому кнопки стоят на одной линии
+   во всех карточках ряда, как бы ни различались описания по длине. */
+.svc__detail {
   align-self: flex-start;
   margin-top: auto;
   display: inline-flex;
@@ -206,9 +197,9 @@
   font-weight: 600;
   font-size: 0.9rem;
 }
-.disclosure:hover { color: var(--accent-hi); }
-.disclosure .icon { transition: transform var(--dur) var(--ease); }
-.disclosure[aria-expanded='true'] .icon { transform: rotate(180deg); }
+.svc__detail:hover { color: var(--accent-hi); }
+.svc__detail .icon { transition: transform var(--dur-fast) var(--ease-out); }
+.svc__detail:hover .icon { transform: translate(2px, -2px); }
 
 
 /* ==========================================================================
@@ -369,7 +360,6 @@
   flex-direction: column;
   gap: clamp(1.5rem, 3vw, 2.5rem);
 }
-.blog__side .blog__foot { margin-top: auto; }
 
 .post { display: flex; flex-direction: column; gap: 1rem; }
 .post__media { --ratio: 16 / 9; }
@@ -401,7 +391,12 @@
 .post--row .post__media { --ratio: 4 / 3; }
 .post--row .post__title { font-size: 1.02rem; }
 
-.blog__foot { margin-top: clamp(2rem, 4vw, 3rem); }
+/* Кнопка раздела: по центру, под всей сеткой. */
+.blog__foot {
+  margin-top: clamp(2rem, 4vw, 3rem);
+  display: flex;
+  justify-content: center;
+}
 
 @media (max-width: 860px) {
   .blog__grid { grid-template-columns: 1fr; }

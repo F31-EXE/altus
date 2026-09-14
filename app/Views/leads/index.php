@@ -31,7 +31,11 @@
                         <br><span class="muted"><?= e($l['contact']) ?></span>
                     <?php endif; ?>
                 </td>
-                <td><?= nl2br(e($l['message'])) ?></td>
+                <?php /* Поле необязательное: пустая ячейка читалась бы как
+                         сбой вёрстки, поэтому подписываем явно. */ ?>
+                <td><?= trim((string) $l['message']) !== ''
+                        ? nl2br(e($l['message']))
+                        : '<span class="muted">не указано</span>' ?></td>
                 <td class="nowrap">
                     <?php if ($l['mailed']): ?>
                         <span class="muted">отправлено</span>

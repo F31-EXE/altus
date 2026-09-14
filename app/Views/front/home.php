@@ -81,10 +81,7 @@
          role="region" aria-label="Услуги, прокручивается по горизонтали"
          data-reveal-group>
       <?php foreach (array_values($services) as $i => $s): ?>
-        <?php
-          [$lead, $more] = split_lead($s['description']);
-          $moreId = 'svc-' . (int) $s['id'] . '-more';
-        ?>
+        <?php [$lead, $more] = split_lead($s['description']); ?>
         <article class="svc" data-reveal>
           <button class="media-btn" type="button"
                   data-lb-src="<?= e(media_url($s['image_path'])) ?>"
@@ -111,17 +108,18 @@
               <p class="svc__lead"><?= nl2br(e($lead)) ?></p>
             <?php endif; ?>
             <?php if ($more !== ''): ?>
-              <div class="svc__more" id="<?= e($moreId) ?>" aria-hidden="true">
-                <div>
-                  <?php foreach (preg_split('/\R\s*\R/u', $more) as $para): ?>
-                    <p><?= nl2br(e(trim($para))) ?></p>
-                  <?php endforeach; ?>
-                </div>
-              </div>
-              <button class="disclosure" type="button" data-disclosure
-                      aria-expanded="false" aria-controls="<?= e($moreId) ?>">
-                <span data-disclosure-label>Показать полностью</span>
-                <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+              <?php /* Длинный текст уходит в модальное окно, а не в шторку.
+                       Раскрытие внутри ленты растягивало одну карточку и рвало
+                       ряд: соседи оставались прежней высоты, а прокрутка
+                       прыгала. Окно - тот же единственный лайтбокс, что и
+                       у фотографий, новых компонентов не заводим. */ ?>
+              <button class="svc__detail" type="button"
+                      data-lb-src="<?= e(media_url($s['image_path'])) ?>"
+                      data-lb-alt="<?= e($s['title']) ?>"
+                      data-lb-title="<?= e($s['title']) ?>"
+                      data-lb-text="<?= e(trim($s['description'])) ?>">
+                Подробнее
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
               </button>
             <?php endif; ?>
           </div>
@@ -562,23 +560,19 @@
               </span>
             </a>
           <?php endforeach; ?>
-
-          <div class="blog__foot">
-            <a class="link-arrow" href="<?= base_url('/blog') ?>">
-              Все новости
-              <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
-            </a>
-          </div>
-        </div>
-      <?php else: ?>
-        <div class="blog__foot">
-          <a class="link-arrow" href="<?= base_url('/blog') ?>">
-            Все новости
-            <svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"></use></svg>
-          </a>
         </div>
       <?php endif; ?>
 
+    </div>
+
+    <?php /* Кнопка одна и стоит по центру под всей сеткой. Раньше их было две,
+             по одной на каждую ветку раскладки, и в правом столбце кнопка
+             читалась как часть последней карточки, а не как выход из раздела. */ ?>
+    <div class="blog__foot">
+      <a class="btn btn--outline" href="<?= base_url('/blog') ?>">
+        Все новости
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+      </a>
     </div>
   </div>
 </section>
@@ -638,17 +632,18 @@
 
         </div>
 
-        <!-- TODO заказчик: подставить ссылки на сообщество ВКонтакте и Telegram.
-             На старом сайте их не было. WhatsApp собран из вашего номера телефона,
-             проверьте, что мессенджер на нём действительно подключён. -->
+        <!-- TODO заказчик: проверить ссылку на MAX. У MAX, в отличие от
+             WhatsApp, нет открытой схемы «ссылка по номеру» вроде wa.me,
+             и адрес ниже собран по тому же образцу на веру. Надёжная ссылка
+             берётся в приложении: аватар - QR-код - «Поделиться», она вида
+             https://max.ru/u/…, либо https://max.ru/<имя-пользователя>.
+             Пришлите её, и здесь меняется одна строка.
+             WhatsApp собран из вашего номера, проверьте, что мессенджер
+             на нём действительно подключён. -->
         <div class="socials">
-          <a class="social" href="#" rel="noopener">
-            <svg class="icon" aria-hidden="true"><use href="#i-brand-vk"></use></svg>
-            ВКонтакте
-          </a>
-          <a class="social" href="#" rel="noopener">
-            <svg class="icon" aria-hidden="true"><use href="#i-brand-telegram"></use></svg>
-            Telegram
+          <a class="social" href="https://max.ru/+79120454444" rel="noopener" target="_blank">
+            <svg class="icon" aria-hidden="true"><use href="#i-message-circle"></use></svg>
+            MAX
           </a>
           <a class="social" href="https://wa.me/79120454444" rel="noopener" target="_blank">
             <svg class="icon" aria-hidden="true"><use href="#i-brand-whatsapp"></use></svg>
@@ -699,14 +694,14 @@
             <label class="field__label" for="f-contact">Мессенджер или почта</label>
             <p class="field__hint">Необязательно. Напишите, если удобнее отвечать туда.</p>
             <input class="input" id="f-contact" name="contact" type="text"
-                   placeholder="Telegram, WhatsApp или адрес почты">
+                   placeholder="MAX, WhatsApp или адрес почты">
           </div>
 
           <div class="field">
-            <label class="field__label" for="f-message">Что нужно сделать <span class="req" aria-hidden="true">*</span></label>
-            <p class="field__hint">Тип конструкции, примерный размер и адрес объекта, если он уже известен.</p>
+            <label class="field__label" for="f-message">Что нужно сделать</label>
+            <p class="field__hint">Необязательно. Тип конструкции, примерный размер и адрес объекта, если он уже известен.</p>
             <textarea class="textarea" id="f-message" name="message"
-                      placeholder="Например: световой короб на фасад кофейни, около 2 метров" required></textarea>
+                      placeholder="Например: световой короб на фасад кофейни, около 2 метров"></textarea>
             <p class="field__error" id="err-message" data-error>
               <svg class="icon" aria-hidden="true"><use href="#i-alert-circle"></use></svg>
               <span data-error-text></span>
