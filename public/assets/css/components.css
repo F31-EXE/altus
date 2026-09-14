@@ -226,7 +226,10 @@
   background: var(--surface-2);
   aspect-ratio: var(--ratio, 4 / 3);
 }
-.media img {
+/* Не только img: в плитке видео кадр-обложку рисует сам <video>, и без
+   этих строк он оставался в своём исходном размере посреди плитки. */
+.media img,
+.media video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -237,7 +240,8 @@
    saturate(0.72) под случайные стоковые фото. На реальных снимках объектов
    это глушило ровно то, что продаётся: красный короб «Дом цветов» становился
    блёклым. Цвет вывески это продукт, его приглушать нельзя. */
-.media--tinted img { filter: saturate(0.96) contrast(1.03) brightness(0.97); }
+.media--tinted img,
+.media--tinted video { filter: saturate(0.96) contrast(1.03) brightness(0.97); }
 .media--tinted::after {
   content: '';
   position: absolute;

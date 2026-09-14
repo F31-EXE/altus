@@ -88,10 +88,57 @@
    2. УСЛУГИ
    ========================================================================== */
 
-.services__grid {
+/* --- Лента: один механизм на «Услуги», «Работы», «Видео» и «Отзывы» ------
+   Разделы наполняются из админки и растут без предела. Сеткой они уводили
+   страницу вниз на несколько экранов, поэтому каждый такой раздел занимает
+   одну строку и листается вбок. Пролистывание нативное: горизонтальная
+   прокрутка со scroll-snap. Пальцем и трекпадом работает само, без JS;
+   скрипт добавляет только кнопки со стрелками.
+
+   Плата за это: четыре раздела подряд устроены одинаково. Чтобы они всё же
+   не читались одним и тем же блоком, у каждого своя ширина карточки и свои
+   пропорции кадра: у услуг карточка широкая с текстом, у работ узкая и
+   вертикальная, у видео широкая под 16 к 9, у отзывов текстовая.          */
+
+.rail-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+.rail-controls { display: flex; gap: 0.6rem; flex: none; }
+
+.rail {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: column;
   gap: var(--gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;   /* горизонтальный «протяг» не уводит страницу назад */
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  /* поле для тени карточек, чтобы её не срезало контейнером */
+  padding-bottom: 1rem;
+  /* карточки не липнут к краю экрана на мобильном */
+  scroll-padding-inline: var(--shell-pad);
+}
+.rail > * { scroll-snap-align: start; }
+
+.rail--services { grid-auto-columns: 380px; }
+.rail--works    { grid-auto-columns: 300px; }
+.rail--video    { grid-auto-columns: 460px; }
+.rail--reviews  { grid-auto-columns: 360px; }
+
+@media (max-width: 560px) {
+  .rail-head { flex-direction: column; align-items: stretch; }
+  .rail-controls { display: none; }   /* на мобильном листаем пальцем */
+  /* min(), а не minmax(): в minmax трек садится на нижнюю границу, и карточка
+     оставалась 260px при любом экране. Здесь ширина считается однозначно. */
+  .rail--services,
+  .rail--works,
+  .rail--video,
+  .rail--reviews { grid-auto-columns: min(82vw, 340px); }
 }
 
 .svc {
@@ -106,48 +153,22 @@
 }
 .svc:hover { border-color: var(--line-accent); background: var(--surface-2); }
 
-/* Разные пролёты вместо трёх одинаковых карточек в ряд */
-.svc--span-4 { grid-column: span 4; }
-.svc--span-5 { grid-column: span 5; }
-.svc--span-6 { grid-column: span 6; }
-.svc--span-7 { grid-column: span 7; }
-
-/* Две широкие карточки-«скобки» открывают и закрывают раздел.
-   У первой фото слева, у последней справа: ряды не выглядят зеркальным зигзагом. */
-.svc--wide {
-  grid-column: span 12;
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  align-items: center;
-  gap: clamp(1.25rem, 3vw, 2.5rem);
-  padding: 1.25rem;
-}
-.svc--wide .svc__media { --ratio: 5 / 4; }
-.svc--wide-rev { direction: rtl; }
-.svc--wide-rev > * { direction: ltr; }
-
-/* Пропорции подобраны так, чтобы фотографии соседей по ряду вставали в одну
-   высоту. Колонки относятся как 7 к 5, поэтому узкой карточке нужен более
-   вытянутый кадр. Иначе в карточке с меньшим фото остаётся пустая полоса
-   в полтораста пикселей. */
-.svc__media               { --ratio: 16 / 11; }   /* пролёт 7 */
-.svc--span-5 .svc__media  { --ratio: 1 / 1; }     /* пролёт 5, высота совпадает с соседом */
+.svc__media { --ratio: 4 / 3; }
 
 .svc__body { display: flex; flex-direction: column; gap: 0.85rem; flex: 1; }
 
+/* Цена стоит под названием, а не справа от него. В узкой карточке ленты
+   строка «Цена по запросу» рядом с заголовком отжимала его в две строки. */
 .svc__head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .svc__price {
   font-weight: 700;
   font-size: 1.02rem;
   color: var(--accent);
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .svc__price small { font-weight: 500; color: var(--text-mute); font-size: 0.78rem; }
@@ -189,15 +210,6 @@
 .disclosure .icon { transition: transform var(--dur) var(--ease); }
 .disclosure[aria-expanded='true'] .icon { transform: rotate(180deg); }
 
-@media (max-width: 1000px) {
-  .svc--span-4, .svc--span-5, .svc--span-6, .svc--span-7 { grid-column: span 6; }
-  .svc--wide { grid-template-columns: 1fr; }
-  .svc--wide-rev { direction: ltr; }
-  .svc--wide .svc__media { --ratio: 16 / 10; }
-}
-@media (max-width: 680px) {
-  .svc--span-4, .svc--span-5, .svc--span-6, .svc--span-7, .svc--wide { grid-column: span 12; }
-}
 
 /* ==========================================================================
    3. ХОД РАБОТЫ
@@ -269,60 +281,26 @@
    4. НАШИ РАБОТЫ
    ========================================================================== */
 
-.works__grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--gap);
-}
+/* Кадр вертикальный: так работы не путаются с широкими карточками услуг
+   и плитками видео, хотя механизм ленты у них общий. */
+.work .media { --ratio: 4 / 5; }
 
-/* Восемь работ, восемь ячеек. Ряды заполнены полностью, пустых плиток нет:
-   4+2 / 2+4 / 2+4 / 3+3 */
-.work--w4 { grid-column: span 4; }
-.work--w3 { grid-column: span 3; }
-.work--w2 { grid-column: span 2; }
-
-.work--w4 .media { --ratio: 16 / 10; }
-.work--w3 .media { --ratio: 4 / 3; }
-.work--w2 .media { --ratio: 3 / 4; }
-
-/* Подпись стоит под фотографией. Плашек и меток поверх снимков нет. */
+/* Подпись стоит под фотографией. Плашек и меток поверх снимков нет.
+   Название и тип идут друг под другом, а не в одну строку: карточка узкая,
+   а тексты приходят из админки и могут быть любой длины. */
 .work__caption {
   margin-top: 0.75rem;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 .work__name { font-weight: 600; font-size: 0.94rem; }
-.work__kind { font-size: 0.825rem; color: var(--text-mute); white-space: nowrap; }
-
-.works__foot { margin-top: clamp(2rem, 4vw, 3rem); }
-
-@media (max-width: 900px) {
-  .works__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .work--w4 { grid-column: span 4; }
-  .work--w3, .work--w2 { grid-column: span 2; }
-  .work--w2 .media { --ratio: 4 / 5; }
-}
-@media (max-width: 560px) {
-  .works__grid { grid-template-columns: 1fr; }
-  .work--w4, .work--w3, .work--w2 { grid-column: span 1; }
-  .work--w4 .media, .work--w3 .media, .work--w2 .media { --ratio: 4 / 3; }
-}
+.work__kind { font-size: 0.825rem; color: var(--text-mute); }
 
 /* ==========================================================================
    5. ОТЗЫВЫ
    ========================================================================== */
 
-.reviews__head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: clamp(2rem, 4vw, 3rem);
-}
-
-.reviews__controls { display: flex; gap: 0.6rem; flex: none; }
 .rail-btn {
   display: grid;
   place-items: center;
@@ -336,25 +314,11 @@
 .rail-btn:hover:not([disabled]) { border-color: var(--line-accent); background: var(--accent-wash); }
 .rail-btn[disabled] { opacity: 0.35; cursor: default; }
 
-.reviews__row {
-  display: grid;
-  grid-auto-flow: column;
-  /* Фиксированная ширина, а не minmax: при 360px в три строки помещается
-     около 120 символов, и отзыв читается целиком, без обрыва на многоточии. */
-  grid-auto-columns: 360px;
-  gap: var(--gap);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
-  /* поле для тени карточек, чтобы её не срезало контейнером */
-  padding-bottom: 1rem;
-  /* карточки не липнут к краю экрана на мобильном */
-  scroll-padding-inline: var(--shell-pad);
-}
+/* Ширина 360px, а не minmax: при ней в три строки помещается около
+   120 символов, и отзыв читается целиком, без обрыва на многоточии.
+   Задана выше, вместе с остальными лентами. */
 
 .review {
-  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
@@ -388,11 +352,6 @@
 .review__name { font-weight: 600; font-size: 0.94rem; }
 .review__role { font-size: 0.85rem; color: var(--text-mute); }
 
-@media (max-width: 560px) {
-  .reviews__head { flex-direction: column; align-items: stretch; }
-  .reviews__controls { display: none; }   /* на мобильном листаем пальцем */
-  .reviews__row { grid-auto-columns: minmax(260px, 82vw); }
-}
 
 /* ==========================================================================
    6. БЛОГ
@@ -821,11 +780,6 @@ a.contact-item__value:hover { color: var(--accent-hi); }
    один естественный формат кадра.
    ========================================================================== */
 
-.video__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gap);
-}
 .vid { display: flex; flex-direction: column; gap: 0.85rem; }
 .vid .media { --ratio: 16 / 9; }
 
@@ -855,10 +809,4 @@ a.contact-item__value:hover { color: var(--accent-hi); }
 .vid__name { font-weight: 600; font-size: 0.98rem; }
 .vid__meta { font-size: 0.85rem; color: var(--text-mute); white-space: nowrap; }
 
-/* Пустое состояние занимает всю сетку, а не одну ячейку из двух:
-   иначе сообщение висит в левой половине и выглядит как сломанная плитка. */
-.video__grid .empty { grid-column: 1 / -1; }
 
-@media (max-width: 720px) {
-  .video__grid { grid-template-columns: 1fr; }
-}

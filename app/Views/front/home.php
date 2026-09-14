@@ -44,8 +44,10 @@
 
 <?php if ($services): ?>
 <!-- ==========================================================================
-     НАШИ УСЛУГИ. Семейство раскладки: сетка на 12 колонок, карточки разной
-     ширины. Данные из админки, раздел «Наши услуги».
+     НАШИ УСЛУГИ. Горизонтальная лента. Данные из админки, раздел «Наши услуги».
+
+     Лентой, а не сеткой: услуг в админке может стать сколько угодно, и сеткой
+     раздел уводил страницу вниз на несколько экранов.
 
      В базе у услуги одно текстовое поле. Вёрстке нужно два куска: короткий
      на виду и длинный под «Показать полностью». Делим по первой пустой
@@ -55,23 +57,35 @@
 <section class="section" id="services">
   <div class="shell">
 
-    <div class="section-head">
-      <h2 class="display h2">Наши услуги</h2>
-      <p class="lede">
-        Любые формы и виды наружной рекламы: проектирование, дизайн, изготовление,
-        монтаж, высотные работы и брендирование транспорта.
-      </p>
+    <div class="rail-head">
+      <div class="section-head u-mb-0">
+        <h2 class="display h2">Наши услуги</h2>
+        <p class="lede">
+          Любые формы и виды наружной рекламы: проектирование, дизайн, изготовление,
+          монтаж, высотные работы и брендирование транспорта.
+        </p>
+      </div>
+      <?php if (count($services) > 1): ?>
+        <div class="rail-controls">
+          <button class="rail-btn" type="button" data-rail-prev="services-row" aria-label="Предыдущие услуги">
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
+          </button>
+          <button class="rail-btn" type="button" data-rail-next="services-row" aria-label="Следующие услуги">
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </button>
+        </div>
+      <?php endif; ?>
     </div>
 
-    <?php $spans = services_spans(count($services)); ?>
-    <div class="services__grid" data-reveal-group>
+    <div class="rail rail--services" id="services-row" data-rail tabindex="0"
+         role="region" aria-label="Услуги, прокручивается по горизонтали"
+         data-reveal-group>
       <?php foreach (array_values($services) as $i => $s): ?>
         <?php
-          $span = $spans[$i];
           [$lead, $more] = split_lead($s['description']);
           $moreId = 'svc-' . (int) $s['id'] . '-more';
         ?>
-        <article class="svc <?= $span ?>" data-reveal>
+        <article class="svc" data-reveal>
           <button class="media-btn" type="button"
                   data-lb-src="<?= e(media_url($s['image_path'])) ?>"
                   data-lb-group="services"
@@ -280,8 +294,9 @@
 
 <?php if ($works): ?>
 <!-- ==========================================================================
-     НАШИ РАБОТЫ. Семейство раскладки: мозаика на шесть колонок.
-     Данные из админки, раздел «Наши работы».
+     НАШИ РАБОТЫ. Горизонтальная лента. Данные из админки, раздел «Наши работы».
+     Кадр вертикальный: механизм тот же, что у услуг и видео, но ритм другой,
+     и разделы не читаются одним и тем же блоком.
 
      В базе у работы одно поле описания. Первая строка идёт подписью под
      фотографию, остальное - текстом в лайтбоксе. Если описание в одну
@@ -290,23 +305,36 @@
 <section class="section" id="works">
   <div class="shell">
 
-    <div class="section-head">
-      <h2 class="display h2">Наши работы</h2>
-      <p class="lede">
-        Которые говорят сами за себя. Нажмите на фотографию, чтобы рассмотреть
-        её крупно и прочитать описание.
-      </p>
+    <div class="rail-head">
+      <div class="section-head u-mb-0">
+        <h2 class="display h2">Наши работы</h2>
+        <p class="lede">
+          Которые говорят сами за себя. Нажмите на фотографию, чтобы рассмотреть
+          её крупно и прочитать описание.
+        </p>
+      </div>
+      <?php if (count($works) > 1): ?>
+        <div class="rail-controls">
+          <button class="rail-btn" type="button" data-rail-prev="works-row" aria-label="Предыдущие работы">
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
+          </button>
+          <button class="rail-btn" type="button" data-rail-next="works-row" aria-label="Следующие работы">
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </button>
+        </div>
+      <?php endif; ?>
     </div>
 
-    <?php $spans = works_spans(count($works)); ?>
-    <div class="works__grid" data-reveal-group>
+    <div class="rail rail--works" id="works-row" data-rail tabindex="0"
+         role="region" aria-label="Наши работы, прокручивается по горизонтали"
+         data-reveal-group>
       <?php foreach (array_values($works) as $i => $w): ?>
         <?php
           $name = first_line($w['description']) ?: 'Работа';
           $rest = rest_lines($w['description']);
           $full = trim($w['description']) !== '' ? trim($w['description']) : $name;
         ?>
-        <figure class="work work--w<?= $spans[$i] ?>" data-reveal>
+        <figure class="work" data-reveal>
           <button class="media-btn" type="button"
                   data-lb-src="<?= e(media_url($w['image_path'])) ?>"
                   data-lb-group="works"
@@ -350,14 +378,28 @@
 <section class="section" id="video">
   <div class="shell">
 
-    <div class="section-head">
-      <h2 class="display h2">Видео</h2>
-      <p class="lede">
-        Видеоотчёты с объектов и съёмка производства.
-      </p>
+    <div class="rail-head">
+      <div class="section-head u-mb-0">
+        <h2 class="display h2">Видео</h2>
+        <p class="lede">
+          Видеоотчёты с объектов и съёмка производства.
+        </p>
+      </div>
+      <?php if (count($videos) > 1): ?>
+        <div class="rail-controls">
+          <button class="rail-btn" type="button" data-rail-prev="video-row" aria-label="Предыдущие ролики">
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
+          </button>
+          <button class="rail-btn" type="button" data-rail-next="video-row" aria-label="Следующие ролики">
+            <svg class="icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </button>
+        </div>
+      <?php endif; ?>
     </div>
 
-    <div class="video__grid" data-reveal-group>
+    <div class="rail rail--video" id="video-row" data-rail tabindex="0"
+         role="region" aria-label="Видео, прокручивается по горизонтали"
+         data-reveal-group>
       <?php foreach ($videos as $v): ?>
           <?php
             $name = trim((string) ($v['title'] ?? '')) ?: 'Видео';
@@ -407,13 +449,13 @@
 <section class="section" id="reviews">
   <div class="shell">
 
-    <div class="reviews__head">
+    <div class="rail-head">
       <div class="section-head u-mb-0">
         <h2 class="display h2">Отзывы</h2>
         <p class="lede">Лучшая характеристика нашей компании.</p>
       </div>
       <?php if (count($reviews) > 1): ?>
-        <div class="reviews__controls">
+        <div class="rail-controls">
           <button class="rail-btn" type="button" data-rail-prev="reviews-row" aria-label="Предыдущий отзыв">
             <svg class="icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
           </button>
@@ -424,7 +466,7 @@
       <?php endif; ?>
     </div>
 
-    <div class="reviews__row" id="reviews-row" data-rail tabindex="0"
+    <div class="rail rail--reviews" id="reviews-row" data-rail tabindex="0"
          role="region" aria-label="Отзывы клиентов, прокручивается по горизонтали">
       <?php foreach ($reviews as $r): ?>
         <?php
