@@ -1,0 +1,22 @@
+# Скрипты для сервера обязаны выгружаться с переводами строк LF даже на
+# Windows. Иначе git по умолчанию подставляет CRLF, файл уезжает на Linux
+# по scp, и bash падает на `$'\r': command not found`, не дойдя до второй
+# строки. Проверено на практике.
+*.sh text eol=lf
+
+# Остальному коду переводы строк безразличны, но пусть будут одинаковыми
+# у всех: так в diff не попадают файлы, которые никто не менял.
+*.php text eol=lf
+*.css text eol=lf
+*.js  text eol=lf
+*.sql text eol=lf
+*.md  text eol=lf
+
+# Двоичное не трогать ни при каких настройках.
+*.png  binary
+*.jpg  binary
+*.webp binary
+*.woff2 binary
+*.mp4  binary
+*.webm binary
+*.pdf  binary
