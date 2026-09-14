@@ -22,10 +22,23 @@ MariaDB 10.4+. Ни Composer, ни npm, ни сборки.
 
 ```bash
 cp config/config.example.php config/config.php     # заполнить доступы к БД
-mysql -u root -e "CREATE DATABASE altus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root altus < database/schema.sql
+php database/install.php                           # база и таблицы
 php database/seed.php                              # стартовый контент сайта
 php database/create_admin.php "Имя" you@example.com пароль-от-10-символов
+```
+
+`install.php` создаёт базу и импортирует `database/schema.sql` силами самого
+PHP, консольный клиент `mysql` не нужен. Это не прихоть: на Windows `mysql`
+обычно лежит внутри Laragon или XAMPP и в PATH не выставлен, а в PowerShell
+вдобавок не работает перенаправление `mysql < schema.sql` — оператор `<` там
+зарезервирован. PHP же есть всегда, иначе проект не запустится. Скрипт
+идемпотентный: существующую базу не трогает, данные не затирает.
+
+Если `mysql` в PATH есть и привычнее вручную, то же самое делается так:
+
+```bash
+mysql -u root -e "CREATE DATABASE altus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root altus < database/schema.sql
 ```
 
 Дальше любой из двух вариантов.
@@ -156,7 +169,7 @@ app/
   Views/                             админка, как была
   Views/site/                        демо-витрина прошлого разработчика
 config/            config.php (локально) + config.example.php
-database/          schema.sql, seed.php, seed-media/, create_admin.php
+database/          install.php, schema.sql, seed.php, seed-media/, create_admin.php
 public/            docroot
   index.php  router.php (только для php -S)  .htaccess
   assets/css|js|fonts|icons          сайт
