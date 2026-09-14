@@ -330,3 +330,19 @@ a.doc-badge:hover { background: #e2e8f0; text-decoration: none; }
     .field-row { flex-direction: column; }
     .page { padding: 16px; }
 }
+
+/* Счётчик новых заявок в меню и подсветка непрочитанной строки в списке. */
+.badge {
+    display: inline-block;
+    min-width: 1.4em;
+    padding: 0 .4em;
+    margin-left: .35em;
+    border-radius: 999px;
+    background: #2f83fb;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    text-align: center;
+}
+.table tr.is-new td { background: rgba(47, 131, 251, .07); }
+.table td.nowrap { white-space: nowrap; }

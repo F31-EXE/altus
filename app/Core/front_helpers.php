@@ -143,6 +143,29 @@ function service_price(mixed $price): string
 }
 
 /**
+ * Реквизит для правовой страницы.
+ *
+ * Пустое поле не молчит: вместо него печатается заметная пометка. Пустой ИНН
+ * в политике конфиденциальности - это дыра, которую надо увидеть, а не
+ * пропущенная строка, которую никто не заметит.
+ */
+function legal(string $key): string
+{
+    $value = trim((string) config('legal.' . $key, ''));
+
+    return $value !== ''
+        ? e($value)
+        : '<mark class="legal-todo">впишите ' . e($key) . ' в config/config.php</mark>';
+}
+
+/** Заполнены ли регистрационные реквизиты. */
+function legal_complete(): bool
+{
+    return trim((string) config('legal.inn', '')) !== ''
+        && trim((string) config('legal.ogrn', '')) !== '';
+}
+
+/**
  * Дописывает width и height картинкам внутри статьи.
  *
  * Редактор админки вставляет голый <img src="...">, без размеров. Браузер

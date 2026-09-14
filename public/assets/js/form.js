@@ -129,8 +129,8 @@
   function send(payload) {
     var endpoint = form.getAttribute('data-endpoint');
 
-    /* Заглушка: бэкенда пока нет. Держим искусственную паузу, чтобы
-       состояние отправки было видно и его можно было проверить. */
+    /* Заглушка на случай, если адрес обработчика не задан. Держим
+       искусственную паузу, чтобы состояние отправки было видно. */
     if (!endpoint) {
       return new Promise(function (resolve, reject) {
         setTimeout(function () {
@@ -143,12 +143,34 @@
       });
     }
 
+    var headers = { 'Content-Type': 'application/json' };
+
+    /* Токен идёт заголовком, а не полем формы: тело запроса это JSON,
+       и обычная проверка по $_POST до него не доберётся. */
+    var token = form.getAttribute('data-csrf');
+    if (token) headers['X-CSRF-Token'] = token;
+
     return fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(payload)
     }).then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (res.ok) return;
+
+      /* Сервер отвечает разборчиво: показываем его сообщение, а не общее.
+         Поля с ошибками подсвечиваем, как при проверке на месте. */
+      return res.json().catch(function () { return null; }).then(function (data) {
+        if (data && data.errors) {
+          Object.keys(data.errors).forEach(function (field) {
+            var el = form.elements[field];
+            if (el) setError(el, data.errors[field][0]);
+          });
+        }
+        var e = new Error('HTTP ' + res.status);
+        e.userMessage = (data && data.error) ||
+          (data && data.errors ? 'Проверьте отмеченные поля и отправьте ещё раз.' : null);
+        throw e;
+      });
     });
   }
 
@@ -169,7 +191,10 @@
       name: form.elements.name.value.trim(),
       phone: form.elements.phone.value.trim(),
       contact: form.elements.contact ? form.elements.contact.value.trim() : '',
-      message: form.elements.message.value.trim()
+      message: form.elements.message.value.trim(),
+      consent: !!(form.elements.consent && form.elements.consent.checked),
+      /* Ловушка для роботов: поле спрятано от человека и должно быть пустым. */
+      website: form.elements.website ? form.elements.website.value : ''
     };
 
     send(payload)
@@ -180,8 +205,9 @@
         });
         showStatus('success', 'Заявка отправлена. Свяжемся с вами в течение рабочего дня.');
       })
-      .catch(function () {
-        showStatus('error', 'Не получилось отправить заявку. Позвоните нам или напишите в мессенджер.');
+      .catch(function (err) {
+        showStatus('error', (err && err.userMessage) ||
+          'Не получилось отправить заявку. Позвоните нам или напишите в мессенджер.');
       })
       .finally(function () {
         setLoading(false);

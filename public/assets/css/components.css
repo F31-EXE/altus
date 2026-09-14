@@ -624,3 +624,28 @@
   transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
 }
 .social:hover { color: var(--text); border-color: var(--line-accent); background: var(--accent-wash); }
+
+/* Ловушка для роботов. Убираем из потока полностью, а не через display:none:
+   часть заполнителей пропускает скрытые display:none поля, а так поле для
+   них остаётся настоящим. Человеку оно не видно и в обход табуляции. */
+.form__trap {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Само поле тоже схлопываем, а не только обёртку. Обёртка его обрезает,
+   но полагаться на обрезку не стоит: при своих отступах и рамке поле
+   остаётся размером с обычный ввод и может вылезти при других стилях. */
+.form__trap input {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+/* Две ссылки на документы в нижней строке подвала. */
+.footer__legal { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; }

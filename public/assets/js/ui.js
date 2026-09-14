@@ -131,7 +131,46 @@
     });
   })();
 
-  /* --- 5. Карта по нажатию -------------------------------------------------
+  /* --- 5. Уведомление о cookie ---------------------------------------------
+     Показываем только тем, кто ещё не закрывал. Отметка лежит в localStorage,
+     а не в cookie: ставить cookie ради уведомления о cookie - странно, и она
+     улетала бы на сервер при каждом запросе без всякой пользы.
+
+     localStorage может быть недоступен: приватное окно, запрет на хранение
+     данных сайта. Поэтому все обращения к нему в try, и при отказе баннер
+     просто показывается каждый раз - это хуже для привычки, но лучше, чем
+     сломанная страница.                                                     */
+  (function cookieNotice() {
+    var box = document.querySelector('[data-cookie]');
+    if (!box) return;
+
+    var KEY = 'altus_cookie_notice';
+
+    function remembered() {
+      try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+    }
+    function remember() {
+      try { localStorage.setItem(KEY, '1'); } catch (e) { /* приватное окно */ }
+    }
+
+    if (remembered()) return;
+
+    box.hidden = false;
+    /* Класс ставим отдельным кадром, иначе появление не анимируется. */
+    requestAnimationFrame(function () { box.classList.add('is-in'); });
+
+    var ok = box.querySelector('[data-cookie-ok]');
+    if (!ok) return;
+
+    ok.addEventListener('click', function () {
+      remember();
+      box.classList.remove('is-in');
+      if (reduced.matches) { box.hidden = true; return; }
+      box.addEventListener('transitionend', function () { box.hidden = true; }, { once: true });
+    });
+  })();
+
+  /* --- 6. Карта по нажатию -------------------------------------------------
      Виджет карты приходит на страницу только когда его попросили. Заглушка
      подменяется самим iframe, высота у них одна, поэтому блок не прыгает.
      Фокус переводим на карту: кнопки, с которой пришло нажатие, уже нет.   */
@@ -148,7 +187,7 @@
     });
   })();
 
-  /* --- 6. Прокрутка ряда отзывов ------------------------------------------
+  /* --- 7. Прокрутка ряда отзывов ------------------------------------------
      Кнопки двигают ряд на одну карточку. Состояние «дальше некуда»
      показывается через disabled, а не молчаливым бездействием.             */
   (function rail() {

@@ -667,11 +667,18 @@ a.contact-item__value:hover { color: var(--accent-hi); }
   color: var(--text);
 }
 
-/* Таблица шире колонки текста прокручивается сама, страница - нет. */
-.prose table {
-  display: block;
-  width: 100%;
+/* Таблица шире колонки текста прокручивается сама, страница - нет.
+   Прокрутка на обёртке, а не на самой таблице: display:block на <table>
+   тоже даёт полосу прокрутки, но таблица при этом продолжает растягивать
+   страницу по горизонтали. Проверено на 390px: было 82px выноса. */
+.table-scroll {
   overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.prose table {
+  width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
 }
@@ -810,3 +817,91 @@ a.contact-item__value:hover { color: var(--accent-hi); }
 .vid__meta { font-size: 0.85rem; color: var(--text-mute); white-space: nowrap; }
 
 
+
+/* ==========================================================================
+   12. ПРАВОВЫЕ СТРАНИЦЫ И УВЕДОМЛЕНИЕ О COOKIE
+   ========================================================================== */
+
+/* Документ читают, а не просматривают: колонка уже обычной прозы,
+   и между пунктами больше воздуха, чем в статье блога. */
+.legal { max-width: 62ch; }
+.legal h2 { margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+.legal h3 {
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: var(--text);
+  margin-top: clamp(1.5rem, 3vw, 2rem);
+}
+.legal ul { gap: 0.55rem; }
+.legal table { margin-top: 1.6rem; font-size: 0.92rem; }
+.legal td code { white-space: nowrap; }
+
+/* Незаполненный реквизит в правовом документе надо видеть, а не пропускать. */
+.legal-todo {
+  background: var(--danger);
+  color: var(--ink);
+  padding: 0.05em 0.4em;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  font-size: 0.92em;
+}
+
+.legal-warning {
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--r-md);
+  background: var(--danger-wash);
+  color: var(--text);
+}
+
+/* Оговорка в конце документа: тише основного текста, но не мелким шрифтом
+   в подвале - её нужно прочитать. */
+.legal-note {
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.92rem;
+  color: var(--text-mute);
+}
+
+/* --- Уведомление о cookie -------------------------------------------------
+   Полоса внизу окна, не окно поверх страницы. Сайт читается и до нажатия,
+   кнопка ничего не разблокирует: технические cookie нужны для работы формы,
+   и предлагать «отклонить» значило бы обещать то, чего мы не делаем.      */
+.cookie {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-drawer);
+  background: var(--surface);
+  border-top: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(100%);
+  transition: transform var(--dur) var(--ease);
+}
+.cookie.is-in { transform: translateY(0); }
+
+.cookie__in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-block: 0.9rem;
+}
+.cookie__text {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  max-width: 78ch;
+}
+.cookie__text a { color: var(--accent); }
+.cookie__text a:hover { color: var(--accent-hi); }
+.cookie__ok { flex: none; }
+
+@media (max-width: 640px) {
+  .cookie__in { flex-direction: column; align-items: stretch; gap: 0.85rem; }
+  .cookie__ok { align-self: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie { transition: none; }
+}

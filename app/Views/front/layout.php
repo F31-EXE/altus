@@ -114,10 +114,30 @@ $navHref = static fn(string $href): string => str_starts_with($href, '#')
 
     <div class="footer__bottom">
       <span>ООО «Альтус», 2018 по <?= date('Y') ?>. Производство и монтаж вывесок, наружная реклама.</span>
-      <a href="#">Политика конфиденциальности</a>
+      <span class="footer__legal">
+        <a href="<?= base_url('/privacy') ?>">Политика конфиденциальности</a>
+        <a href="<?= base_url('/terms') ?>">Пользовательское соглашение</a>
+      </span>
     </div>
   </div>
 </footer>
+
+<!-- Уведомление о cookie. Полоса внизу, а не окно поверх страницы:
+     сайт читается и до нажатия, кнопка «Понятно» ничего не разблокирует.
+     Разметка приходит с сервера скрытой, показывает её ui.js, если человек
+     ещё не закрывал уведомление. Так оно не мигает у тех, кто уже закрыл. -->
+<div class="cookie" data-cookie hidden>
+  <div class="shell cookie__in">
+    <p class="cookie__text">
+      Сайт использует только технические cookie: они нужны, чтобы работала
+      форма заявки. Аналитики и рекламных счётчиков здесь нет.
+      <a href="<?= base_url('/privacy') ?>">Подробнее</a>
+    </p>
+    <button class="btn btn--primary btn--sm cookie__ok" type="button" data-cookie-ok>
+      Понятно
+    </button>
+  </div>
+</div>
 
 <script src="<?= asset('assets/js/ui.js') ?>" defer></script>
 <script src="<?= asset('assets/js/lightbox.js') ?>" defer></script>

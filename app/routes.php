@@ -11,14 +11,21 @@ use App\Controllers\WorkController;
 use App\Controllers\VideoController;
 use App\Controllers\AboutController;
 use App\Controllers\SiteController;
+use App\Controllers\LeadsAdminController;
 use App\Controllers\PublicController;
+use App\Controllers\LeadController;
 
 /** @var Router $router */
 
 // --- Публичный сайт. Занимает корень, поэтому объявлен первым ---
 $router->get('/',             [PublicController::class, 'home']);
 $router->get('/blog',         [PublicController::class, 'blogIndex']);
+$router->get('/privacy',      [PublicController::class, 'privacy']);
+$router->get('/terms',        [PublicController::class, 'terms']);
 $router->get('/blog/{slug}',  [PublicController::class, 'blogShow']);
+
+// Приём заявок с контактной формы
+$router->post('/api/lead',    [LeadController::class, 'store']);
 
 // --- Демо-витрина прошлого разработчика. Оставлена как справочник ---
 $router->get('/site',             [SiteController::class, 'home']);
@@ -43,6 +50,11 @@ $router->post(admin_path('/users'),           [UserController::class, 'store']);
 $router->get(admin_path('/users/{id}/edit'),  [UserController::class, 'edit']);
 $router->post(admin_path('/users/{id}'),      [UserController::class, 'update']);
 $router->post(admin_path('/users/{id}/delete'), [UserController::class, 'destroy']);
+
+// --- Заявки с сайта ---
+$router->get(admin_path('/leads'),              [LeadsAdminController::class, 'index']);
+$router->post(admin_path('/leads/{id}/read'),   [LeadsAdminController::class, 'markRead']);
+$router->post(admin_path('/leads/{id}/delete'), [LeadsAdminController::class, 'destroy']);
 
 // --- Наши услуги ---
 $router->get(admin_path('/services'),             [ServiceController::class, 'index']);

@@ -86,6 +86,24 @@ final class PublicController extends Controller
         ], $post['title'] . '. Альтус');
     }
 
+    public function privacy(): void
+    {
+        $this->viewFront('front/privacy', [
+            'nav'         => $this->navForInnerPage(),
+            'description' => 'Как сайт «Альтус» собирает, использует и хранит '
+                . 'персональные данные посетителей и какие файлы cookie ставит.',
+        ], 'Политика конфиденциальности. Альтус');
+    }
+
+    public function terms(): void
+    {
+        $this->viewFront('front/terms', [
+            'nav'         => $this->navForInnerPage(),
+            'description' => 'Пользовательское соглашение сайта «Альтус» '
+                . 'и согласие на обработку персональных данных.',
+        ], 'Пользовательское соглашение. Альтус');
+    }
+
     /**
      * Меню главной: пункт показывается, только если его раздел не пуст.
      * «Ход работы» и «Контакты» свёрстаны в шаблоне и есть всегда.

@@ -660,7 +660,18 @@
       <!-- Форма. Label над полем, подсказка под label, ошибка под полем.
            Адрес обработчика ставится в data-endpoint, см. assets/js/form.js -->
       <div class="form-panel">
-        <form class="form" data-form novalidate>
+        <form class="form" data-form novalidate
+              data-endpoint="<?= e(base_url('/api/lead')) ?>"
+              data-csrf="<?= e(\App\Core\Csrf::token()) ?>">
+
+          <!-- Ловушка для роботов. Спрятана от человека и от скринридера,
+               но автозаполнитель её видит и заполняет. Заполнено - заявка
+               молча отбрасывается на сервере. Спрятана классом, не inline
+               стилем: inline-стилей в разметке на сайте нет. -->
+          <div class="form__trap" aria-hidden="true">
+            <label for="f-website">Не заполняйте это поле</label>
+            <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+          </div>
 
           <div class="form__row">
             <div class="field">
@@ -705,8 +716,8 @@
           <div class="field">
             <label class="check">
               <input type="checkbox" name="consent" required>
-              <span>Согласен на обработку персональных данных и принимаю
-                <a href="#" rel="noopener">политику конфиденциальности</a>.</span>
+              <span>Согласен на <a href="<?= base_url('/terms') ?>">обработку персональных данных</a>
+                и принимаю <a href="<?= base_url('/privacy') ?>">политику конфиденциальности</a>.</span>
             </label>
             <p class="field__error" id="err-consent" data-error>
               <svg class="icon" aria-hidden="true"><use href="#i-alert-circle"></use></svg>

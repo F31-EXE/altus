@@ -122,4 +122,26 @@ CREATE TABLE IF NOT EXISTS `about` (
     KEY `idx_about_sort` (`sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ------------------------------------------------------------
+-- Заявки с контактной формы сайта
+--
+-- Заявка и уходит на почту, и ложится сюда. Почта с виртуального хостинга
+-- до Яндекса доходит не всегда (SPF, DKIM, спам-фильтр), и без записи в базе
+-- потерянная заявка это потерянный клиент. Здесь она остаётся в любом случае.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `leads` (
+    `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name`       VARCHAR(200)  NOT NULL,
+    `phone`      VARCHAR(50)   NOT NULL,
+    `contact`    VARCHAR(200)  NULL DEFAULT NULL,  -- мессенджер или почта, необязательно
+    `message`    TEXT          NOT NULL,
+    `ip`         VARCHAR(45)   NULL DEFAULT NULL,  -- для разбора спама, см. политику
+    `mailed`     TINYINT(1)    NOT NULL DEFAULT 0, -- удалось ли отправить письмо
+    `is_read`    TINYINT(1)    NOT NULL DEFAULT 0,
+    `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_leads_new` (`is_read`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;
