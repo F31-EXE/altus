@@ -54,13 +54,89 @@ apt-get install -y -qq \
 a2enmod rewrite headers >/dev/null
 systemctl enable --now apache2 mariadb >/dev/null
 
-PHP_VER="$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')"
-say "PHP $PHP_VER"
-php -r 'exit(PHP_VERSION_ID >= 80100 ? 0 : 1);' || fail "Нужен PHP 8.1 или новее, установлен $PHP_VER"
+# --- 1a. Какой именно PHP мы настраиваем ----------------------------------
 
+# /usr/bin/php - это ссылка из update-alternatives, и мета-пакеты (php-cli,
+# php-defaults) умеют переставить её уже после установки, на другую версию
+# или на диспетчер php.default. Апачу при этом служит своя версия - та, для
+# которой собран libapache2-mod-php. Поэтому версию берём от Апача и дальше
+# зовём её бинарник напрямую: расширения, которые мы проверяем, тогда ровно
+# те, с которыми будет работать сайт, а не те, что достались `php` по
+# стечению обстоятельств.
+#
+# sort -V, а не просто последний по алфавиту: 8.10 старше 8.5, но лексически
+# идёт раньше.
+PHP_VER="$(ls -1d /etc/php/*/apache2 2>/dev/null | awk -F/ '{print $4}' | sort -V | tail -1)"
+[ -n "$PHP_VER" ] || fail "Модуль PHP для Apache не установился: каталога /etc/php/*/apache2 нет."
+
+# Мета-пакет php-cli мог притащить другую версию, чем libapache2-mod-php.
+# Тогда бинарника нужной версии просто нет - доставляем, иначе проверять
+# расширения будем не у того PHP, что обслуживает сайт.
+if ! command -v "php$PHP_VER" >/dev/null 2>&1; then
+    say "Доставляю php$PHP_VER-cli"
+    apt-get install -y -qq "php$PHP_VER-cli" >/dev/null 2>&1 || true
+fi
+
+PHP_BIN="php$PHP_VER"
+command -v "$PHP_BIN" >/dev/null 2>&1 || PHP_BIN="php"
+command -v "$PHP_BIN" >/dev/null 2>&1 || fail "PHP не установился: нет ни php$PHP_VER, ни php."
+
+say "PHP $PHP_VER ($(command -v "$PHP_BIN"))"
+"$PHP_BIN" -r 'exit(PHP_VERSION_ID >= 80100 ? 0 : 1);' \
+    || fail "Нужен PHP 8.1 или новее, установлен $PHP_VER"
+
+# --- 1b. Расширения -------------------------------------------------------
+
+# Пакет кладёт ini в mods-available, а включение в SAPI - отдельный шаг,
+# и он происходит сам не всегда. Плюс мета-пакет php-mysql мог поставить
+# модуль к другой версии PHP, не к той, что у Апача. Поэтому не сдаёмся
+# на первом промахе: сначала пробуем включить, потом доставить пакет нужной
+# версии, и только потом ругаемся - сразу всем списком и с диагностикой,
+# чтобы не выяснять по одному расширению за запуск.
+
+has_ext() { "$PHP_BIN" -m | grep -qix "$1"; }
+
+# Имя пакета не всегда совпадает с именем расширения.
+ext_package() {
+    case "$1" in
+        pdo_mysql) echo "php$PHP_VER-mysql"    ;;
+        dom)       echo "php$PHP_VER-xml"      ;;
+        fileinfo)  echo ""                     ;;  # собран в ядро, пакета нет
+        *)         echo "php$PHP_VER-$1"       ;;
+    esac
+}
+
+MISSING=""
 for ext in pdo_mysql mbstring dom fileinfo; do
-    php -m | grep -qx "$ext" || fail "Не хватает расширения PHP: $ext"
+    if has_ext "$ext"; then continue; fi
+
+    if command -v phpenmod >/dev/null 2>&1; then
+        phpenmod -v "$PHP_VER" -s ALL "$ext" >/dev/null 2>&1 || true
+        if has_ext "$ext"; then say "Включил расширение $ext"; continue; fi
+    fi
+
+    pkg="$(ext_package "$ext")"
+    if [ -n "$pkg" ]; then
+        say "Доставляю $pkg"
+        apt-get install -y -qq "$pkg" >/dev/null 2>&1 || true
+        if command -v phpenmod >/dev/null 2>&1; then
+            phpenmod -v "$PHP_VER" -s ALL "$ext" >/dev/null 2>&1 || true
+        fi
+        if has_ext "$ext"; then continue; fi
+    fi
+
+    MISSING="$MISSING $ext"
 done
+
+if [ -n "$MISSING" ]; then
+    printf '\n--- %s -v ---\n'    "$PHP_BIN"; "$PHP_BIN" -v    || true
+    printf '\n--- %s --ini ---\n' "$PHP_BIN"; "$PHP_BIN" --ini || true
+    printf '\n--- %s -m ---\n'    "$PHP_BIN"; "$PHP_BIN" -m    || true
+    printf '\n--- пакеты php ---\n'; dpkg-query -W -f='${Package} ${Status}\n' 'php*' 2>/dev/null \
+        | grep ' install ok installed$' | awk '{print "  " $1}' || true
+    fail "Не хватает расширений PHP:$MISSING
+Выше вывод php -v, php --ini, php -m и список пакетов - пришлите его целиком."
+fi
 
 # --- 2. База --------------------------------------------------------------
 
@@ -135,15 +211,15 @@ chmod 640 "$APP_DIR/config/config.php"
 # --- 4. Таблицы и контент -------------------------------------------------
 
 say "Создаю таблицы"
-php "$APP_DIR/database/install.php"
+"$PHP_BIN" "$APP_DIR/database/install.php"
 
 say "Кладу стартовый контент"
-php "$APP_DIR/database/seed.php"
+"$PHP_BIN" "$APP_DIR/database/seed.php"
 
 say "Создаю администратора"
 ADMIN_EMAIL="scharapov.wadym@yandex.ru"
 ADMIN_PASS="$(openssl rand -base64 18 | tr -d '/+=' | head -c 16)"
-php "$APP_DIR/database/create_admin.php" "Вадим" "$ADMIN_EMAIL" "$ADMIN_PASS"
+"$PHP_BIN" "$APP_DIR/database/create_admin.php" "Вадим" "$ADMIN_EMAIL" "$ADMIN_PASS"
 
 # --- 5. Права на файлы ----------------------------------------------------
 
@@ -218,7 +294,7 @@ cat <<SUMMARY
 
   Что сделать дальше
     1. Сменить пароль администратора на свой:
-       php database/create_admin.php "Вадим" $ADMIN_EMAIL новый-пароль
+       $PHP_BIN database/create_admin.php "Вадим" $ADMIN_EMAIL новый-пароль
     2. Выпустить сертификат (нужен домен, а не IP):
        apt install -y certbot python3-certbot-apache
        certbot --apache -d $DOMAIN
