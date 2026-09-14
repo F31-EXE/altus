@@ -1,0 +1,864 @@
+/* ==========================================================================
+   ALTUS - Раскладки секций
+   Девять непохожих layout-семейств, по одному на секцию:
+     1 hero      асимметричный сплит со смещением медиа по вертикали
+     2 услуги    12-колоночная сетка с разными пролётами и двумя широкими карточками
+     3 ход работы липкая колонка слева и вертикальный рельс справа
+     4 о нас     полоса фото во всю ширину окна плюс наезжающая карточка
+     5 работы    мозаика с разными пролётами и пропорциями
+     6 видео     равномерная сетка 16 к 9
+     7 отзывы    горизонтальный ряд со scroll-snap
+     8 блог      одна крупная запись плюс стопка мелких
+     9 контакты  сплит «инфо и форма» плюс карта во всю ширину
+   Ни одно семейство не повторяется. Подряд идущих сплитов «картинка и текст»
+   больше двух не встречается.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. HERO
+   ========================================================================== */
+
+.hero {
+  /* Верхний отступ в пределах лимита: контент не уезжает в середину экрана */
+  padding-block: clamp(2rem, 5vw, 5.25rem) clamp(3.5rem, 7vw, 6rem);
+  overflow: clip;
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+  /* Экран целиком, но не выше: заголовок и кнопки видны без прокрутки.
+     100dvh, а не 100vh: на iOS адресная строка не ломает раскладку. */
+  min-height: min(calc(100dvh - 72px - 8rem), 720px);
+}
+
+/* Ширину текста ограничивает подзаголовок (у .lede свой max-width в ch,
+   он считается от кегля основного текста). Заголовку ограничение в ch
+   ставить нельзя: ch берётся от 16px, а не от его собственных 54px,
+   и заголовок насильно ломается на четыре строки. */
+.hero__content { min-width: 0; }
+
+.hero__title { margin-bottom: 1.35rem; }
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 2.25rem;
+}
+
+/* Асимметрия: медиа выходит за вертикальные границы текстовой колонки */
+.hero__media {
+  --ratio: 4 / 5;
+  margin-block: clamp(0rem, 3vw, -2.5rem) clamp(0rem, 4vw, -4rem);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Появление первого экрана. Обоснование движения: задаёт порядок чтения
+   в первую секунду, от заголовка к кнопке. */
+.js .hero__content > * { animation: hero-rise var(--dur-slow) var(--ease) backwards; }
+.js .hero__title   { animation-delay: 60ms; }
+.js .hero__lede    { animation-delay: 150ms; }
+.js .hero__actions { animation-delay: 240ms; }
+.js .hero__media   { animation: hero-rise 820ms var(--ease) 120ms backwards; }
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(20px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .hero__content > *, .js .hero__media { animation: none; }
+}
+
+@media (max-width: 900px) {
+  .hero__grid {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 2.5rem;
+  }
+  .hero__content { max-width: none; }
+  .hero__media { --ratio: 4 / 3; margin-block: 0; }
+  .hero__actions { margin-top: 1.75rem; }
+  .hero__actions .btn { flex: 1 1 auto; }
+}
+
+/* ==========================================================================
+   2. УСЛУГИ
+   ========================================================================== */
+
+.services__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.svc {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 1.15rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.svc:hover { border-color: var(--line-accent); background: var(--surface-2); }
+
+/* Разные пролёты вместо трёх одинаковых карточек в ряд */
+.svc--span-4 { grid-column: span 4; }
+.svc--span-5 { grid-column: span 5; }
+.svc--span-6 { grid-column: span 6; }
+.svc--span-7 { grid-column: span 7; }
+
+/* Две широкие карточки-«скобки» открывают и закрывают раздел.
+   У первой фото слева, у последней справа: ряды не выглядят зеркальным зигзагом. */
+.svc--wide {
+  grid-column: span 12;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  padding: 1.25rem;
+}
+.svc--wide .svc__media { --ratio: 5 / 4; }
+.svc--wide-rev { direction: rtl; }
+.svc--wide-rev > * { direction: ltr; }
+
+/* Пропорции подобраны так, чтобы фотографии соседей по ряду вставали в одну
+   высоту. Колонки относятся как 7 к 5, поэтому узкой карточке нужен более
+   вытянутый кадр. Иначе в карточке с меньшим фото остаётся пустая полоса
+   в полтораста пикселей. */
+.svc__media               { --ratio: 16 / 11; }   /* пролёт 7 */
+.svc--span-5 .svc__media  { --ratio: 1 / 1; }     /* пролёт 5, высота совпадает с соседом */
+
+.svc__body { display: flex; flex-direction: column; gap: 0.85rem; flex: 1; }
+
+.svc__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.svc__price {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--accent);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.svc__price small { font-weight: 500; color: var(--text-mute); font-size: 0.78rem; }
+
+/* Пока заказчик не передал прайс, в слоте стоит «Цена по запросу». Это не цена,
+   поэтому она не выделяется акцентом: иначе девять одинаковых подписей
+   перетягивают внимание с названий услуг. Когда появятся числа, класс снимается
+   и цена снова становится акцентной. */
+.svc__price--ask { color: var(--text-mute); font-weight: 500; font-size: 0.9rem; }
+
+.svc__lead { color: var(--text-dim); font-size: 0.95rem; }
+
+/* Раскрытие длинного текста. Обоснование движения: переход состояния,
+   показывает, что блок вырос, а не подменился. */
+.svc__more {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur) var(--ease);
+}
+.svc__more > div { overflow: hidden; min-height: 0; }
+.svc__more.is-open { grid-template-rows: 1fr; }
+.svc__more p { color: var(--text-dim); font-size: 0.95rem; }
+.svc__more p + p { margin-top: 0.8rem; }
+
+.disclosure {
+  align-self: flex-start;
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.disclosure:hover { color: var(--accent-hi); }
+.disclosure .icon { transition: transform var(--dur) var(--ease); }
+.disclosure[aria-expanded='true'] .icon { transform: rotate(180deg); }
+
+@media (max-width: 1000px) {
+  .svc--span-4, .svc--span-5, .svc--span-6, .svc--span-7 { grid-column: span 6; }
+  .svc--wide { grid-template-columns: 1fr; }
+  .svc--wide-rev { direction: ltr; }
+  .svc--wide .svc__media { --ratio: 16 / 10; }
+}
+@media (max-width: 680px) {
+  .svc--span-4, .svc--span-5, .svc--span-6, .svc--span-7, .svc--wide { grid-column: span 12; }
+}
+
+/* ==========================================================================
+   3. ХОД РАБОТЫ
+   ========================================================================== */
+
+.process__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(2rem, 6vw, 5.5rem);
+  align-items: start;
+}
+
+/* Левая колонка держится в поле зрения, пока читаются этапы справа.
+   Это не «заголовок плюс абзац-заполнитель»: справа настоящий контент. */
+.process__aside { position: sticky; top: 7rem; }
+.process__aside .btn { margin-top: 2rem; }
+
+.process__steps { position: relative; }
+
+/* Вертикальный рельс соединяет этапы. Порядок читается по рельсу,
+   поэтому подписей «Этап 1», «Шаг 2» на сайте нет. */
+.process__steps::before {
+  content: '';
+  position: absolute;
+  left: 27px;
+  top: 34px;
+  bottom: 34px;
+  width: 1px;
+  background: linear-gradient(var(--line-accent), var(--line));
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 1.35rem;
+  padding-block: clamp(1.1rem, 2vw, 1.5rem);
+}
+
+.step__icon {
+  position: relative;
+  z-index: var(--z-base);
+  width: 56px; height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--accent);
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.step:hover .step__icon { border-color: var(--line-accent); background: var(--surface-2); }
+
+.step__title { font-weight: 600; font-size: 1.05rem; margin-bottom: 0.3rem; }
+.step__text { color: var(--text-dim); font-size: 0.94rem; max-width: 52ch; }
+
+@media (max-width: 900px) {
+  .process__layout { grid-template-columns: 1fr; gap: 2.5rem; }
+  .process__aside { position: static; }
+  .process__aside .btn { margin-top: 1.5rem; }
+}
+@media (max-width: 520px) {
+  .step { grid-template-columns: 44px 1fr; gap: 1rem; }
+  .step__icon { width: 44px; height: 44px; }
+  .process__steps::before { left: 21px; }
+}
+
+/* ==========================================================================
+   4. НАШИ РАБОТЫ
+   ========================================================================== */
+
+.works__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+/* Восемь работ, восемь ячеек. Ряды заполнены полностью, пустых плиток нет:
+   4+2 / 2+4 / 2+4 / 3+3 */
+.work--w4 { grid-column: span 4; }
+.work--w3 { grid-column: span 3; }
+.work--w2 { grid-column: span 2; }
+
+.work--w4 .media { --ratio: 16 / 10; }
+.work--w3 .media { --ratio: 4 / 3; }
+.work--w2 .media { --ratio: 3 / 4; }
+
+/* Подпись стоит под фотографией. Плашек и меток поверх снимков нет. */
+.work__caption {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.work__name { font-weight: 600; font-size: 0.94rem; }
+.work__kind { font-size: 0.825rem; color: var(--text-mute); white-space: nowrap; }
+
+.works__foot { margin-top: clamp(2rem, 4vw, 3rem); }
+
+@media (max-width: 900px) {
+  .works__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .work--w4 { grid-column: span 4; }
+  .work--w3, .work--w2 { grid-column: span 2; }
+  .work--w2 .media { --ratio: 4 / 5; }
+}
+@media (max-width: 560px) {
+  .works__grid { grid-template-columns: 1fr; }
+  .work--w4, .work--w3, .work--w2 { grid-column: span 1; }
+  .work--w4 .media, .work--w3 .media, .work--w2 .media { --ratio: 4 / 3; }
+}
+
+/* ==========================================================================
+   5. ОТЗЫВЫ
+   ========================================================================== */
+
+.reviews__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.reviews__controls { display: flex; gap: 0.6rem; flex: none; }
+.rail-btn {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text);
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out), opacity var(--dur-fast) linear;
+}
+.rail-btn:hover:not([disabled]) { border-color: var(--line-accent); background: var(--accent-wash); }
+.rail-btn[disabled] { opacity: 0.35; cursor: default; }
+
+.reviews__row {
+  display: grid;
+  grid-auto-flow: column;
+  /* Фиксированная ширина, а не minmax: при 360px в три строки помещается
+     около 120 символов, и отзыв читается целиком, без обрыва на многоточии. */
+  grid-auto-columns: 360px;
+  gap: var(--gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  /* поле для тени карточек, чтобы её не срезало контейнером */
+  padding-bottom: 1rem;
+  /* карточки не липнут к краю экрана на мобильном */
+  scroll-padding-inline: var(--shell-pad);
+}
+
+.review {
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.review__mark { color: var(--accent); opacity: 0.85; }
+
+/* Три строки: столько же, сколько занимает самый длинный из наших отзывов.
+   Ограничение стоит на случай, если из админки придёт длинный текст, тогда
+   карточка останется коротким фрагментом, а не полотном.
+   min-height резервирует все три строки, поэтому имена в соседних карточках
+   стоят на одной линии независимо от длины цитаты. */
+.review__text {
+  font-size: 1rem;
+  line-height: 1.55;
+  min-height: calc(3em * 1.55);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Подпись идёт сразу под цитатой, кнопка прижата к низу карточки. */
+.review__foot { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+.review__foot .btn { margin-top: auto; align-self: flex-start; }
+.review__who { display: flex; flex-direction: column; gap: 0.15rem; }
+.review__name { font-weight: 600; font-size: 0.94rem; }
+.review__role { font-size: 0.85rem; color: var(--text-mute); }
+
+@media (max-width: 560px) {
+  .reviews__head { flex-direction: column; align-items: stretch; }
+  .reviews__controls { display: none; }   /* на мобильном листаем пальцем */
+  .reviews__row { grid-auto-columns: minmax(260px, 82vw); }
+}
+
+/* ==========================================================================
+   6. БЛОГ
+   ========================================================================== */
+
+.blog__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+/* Флекс, а не грид: ссылка «Все новости» прижимается к низу колонки
+   и закрывает её, иначе справа оставалась пустота почти на треть высоты. */
+.blog__side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+.blog__side .blog__foot { margin-top: auto; }
+
+.post { display: flex; flex-direction: column; gap: 1rem; }
+.post__media { --ratio: 16 / 9; }
+.post__title { font-weight: 600; letter-spacing: -0.015em; transition: color var(--dur-fast) var(--ease-out); }
+.post:hover .post__title { color: var(--accent-hi); }
+/* Анонс редактор пишет сам, длина непредсказуема. Ограничиваем строками:
+   иначе одна длинная карточка растягивает соседний столбец. */
+.post__excerpt {
+  color: var(--text-dim);
+  font-size: 0.94rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.post__date { font-size: 0.82rem; color: var(--text-mute); }
+
+/* Крупная запись */
+.post--feature .post__media { --ratio: 16 / 10; }
+.post--feature .post__title { font-size: clamp(1.35rem, 2.2vw, 1.75rem); }
+
+/* Мелкие записи: горизонтальная раскладка */
+.post--row {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.post--row .post__media { --ratio: 4 / 3; }
+.post--row .post__title { font-size: 1.02rem; }
+
+.blog__foot { margin-top: clamp(2rem, 4vw, 3rem); }
+
+@media (max-width: 860px) {
+  .blog__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .post--row { grid-template-columns: 1fr; }
+  .post--row .post__media { --ratio: 16 / 9; }
+}
+
+/* ==========================================================================
+   7. КОНТАКТЫ
+   ========================================================================== */
+
+.contacts__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+.contact-list { display: grid; gap: 1.5rem; margin-bottom: 2.25rem; }
+.contact-item { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: start; }
+.contact-item .icon { color: var(--accent); margin-top: 0.2rem; }
+.contact-item__label { font-size: 0.8rem; color: var(--text-mute); margin-bottom: 0.2rem; }
+.contact-item__value { font-weight: 600; font-size: 1.02rem; }
+a.contact-item__value:hover { color: var(--accent-hi); }
+
+.form-panel {
+  padding: clamp(1.35rem, 3vw, 2rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.form { display: grid; gap: 1.25rem; }
+.form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+@media (max-width: 1000px) {
+  .contacts__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .form__row { grid-template-columns: 1fr; }
+}
+
+/* --- Карта ---------------------------------------------------------------
+   Карта живёт в тёмной рамке как медиа-элемент, страница остаётся в одной
+   теме. Лёгкая коррекция по насыщенности сажает светлую подложку в общий
+   тон, не мешая читать подписи улиц. */
+.map {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+/* Заглушка и сама карта одной высоты, поэтому при загрузке блок не прыгает. */
+.map iframe,
+.map__cover {
+  width: 100%;
+  height: clamp(260px, 32vw, 380px);
+  display: block;
+  border: 0;
+}
+.map iframe { filter: saturate(0.8) brightness(0.92) contrast(1.02); }
+
+.map__cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--surface-2);
+  color: var(--text);
+  text-align: center;
+  padding: 1.5rem;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.map__cover:hover { background: var(--surface-3); }
+
+.map__pin {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--accent-wash);
+  color: var(--accent);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.map__cover:hover .map__pin { transform: translateY(-2px); }
+
+.map__cta {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.map__sub { font-size: 0.85rem; color: var(--text-mute); }
+
+.map__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  padding: 0.85rem 1.15rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--text-mute);
+}
+.map__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: auto;
+  color: var(--accent);
+}
+.map__link:hover { color: var(--accent-hi); }
+.map__link .icon { width: 1em; height: 1em; }
+
+/* ==========================================================================
+   8. СТРАНИЦЫ БЛОГА
+   ========================================================================== */
+
+.page-head { padding-block: clamp(3rem, 6vw, 5rem) clamp(2rem, 4vw, 3rem); }
+
+.crumbs { display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--text-mute); margin-bottom: 1.25rem; }
+.crumbs a:hover { color: var(--text); }
+.crumbs .icon { width: 0.9rem; height: 0.9rem; }
+
+/* Список всех новостей: ряды, а не мозаика, чтобы не повторять главную */
+.post-list { display: grid; gap: clamp(1.5rem, 3vw, 2.25rem); }
+.post-list .post--row {
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  padding-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.post-list .post--row:last-child { border-bottom: 0; padding-bottom: 0; }
+.post-list .post--row .post__media { --ratio: 4 / 3; }
+.post-list .post--row .post__title { font-size: clamp(1.15rem, 2vw, 1.4rem); }
+
+@media (max-width: 700px) {
+  .post-list .post--row { grid-template-columns: 1fr; }
+  .post-list .post--row .post__media { --ratio: 16 / 9; }
+}
+
+/* --- Текст статьи -------------------------------------------------------- */
+.article { padding-bottom: clamp(3rem, 6vw, 5rem); }
+.article__hero { --ratio: 21 / 9; margin-bottom: clamp(2rem, 4vw, 3rem); }
+
+.prose { max-width: 68ch; }
+.prose > * + * { margin-top: 1.4rem; }
+.prose p { color: var(--text-dim); font-size: 1.05rem; line-height: 1.75; }
+.prose h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  padding-bottom: 0.06em;
+  color: var(--text);
+  margin-top: clamp(2.25rem, 4vw, 3rem);
+}
+.prose ul { display: grid; gap: 0.7rem; }
+.prose li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.prose li::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0.72em;
+  width: 6px; height: 1px;
+  background: var(--accent);
+}
+.prose figure { margin: clamp(2rem, 4vw, 2.75rem) 0; }
+.prose figure .media { --ratio: 16 / 9; }
+.prose figcaption { margin-top: 0.7rem; font-size: 0.85rem; color: var(--text-mute); }
+.prose strong { color: var(--text); font-weight: 600; }
+.prose em { font-style: italic; }
+
+/* --- Остальной белый список редактора ------------------------------------
+   Тело статьи приходит из TinyMCE и уже отфильтровано HtmlSanitizer. Стили
+   ниже покрывают весь оставшийся набор тегов, чтобы контент из админки
+   нигде не оказался без оформления. */
+.prose h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.1rem, 1.9vw, 1.3rem);
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--text);
+  margin-top: clamp(1.75rem, 3vw, 2.25rem);
+}
+.prose h4, .prose h5, .prose h6 {
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: var(--text);
+  margin-top: 1.75rem;
+}
+/* h1 в теле статьи не нужен: заголовок страницы уже h1. Если редактор всё же
+   его поставил, приводим к размеру h2, чтобы не спорил с заголовком. */
+.prose h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text);
+  margin-top: clamp(2.25rem, 4vw, 3rem);
+}
+
+.prose ol { display: grid; gap: 0.7rem; counter-reset: prose-ol; }
+.prose ol > li { padding-left: 1.9rem; counter-increment: prose-ol; }
+.prose ol > li::before {
+  content: counter(prose-ol) '.';
+  left: 0;
+  top: 0;
+  width: auto; height: auto;
+  background: none;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 0.2em; }
+.prose a:hover { color: var(--accent-hi); }
+
+/* Картинка из редактора приходит голым <img>, без обёртки .media. */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.prose figure img { border-radius: var(--r-lg); }
+
+.prose blockquote {
+  padding-left: 1.1rem;
+  border-left: 2px solid var(--line-accent);
+  color: var(--text-dim);
+  font-size: 1.05rem;
+}
+
+.prose pre {
+  padding: 1rem 1.15rem;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+.prose :not(pre) > code {
+  padding: 0.12em 0.35em;
+  background: var(--surface-3);
+  border-radius: var(--r-sm);
+  color: var(--text);
+}
+
+/* Таблица шире колонки текста прокручивается сама, страница - нет. */
+.prose table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.prose th, .prose td {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--line);
+  text-align: left;
+  color: var(--text-dim);
+}
+.prose th { color: var(--text); font-weight: 600; background: var(--surface-2); }
+
+.article__foot {
+  max-width: 68ch;
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Финальный блок «обсудить проект» на страницах блога */
+.cta-band {
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  border: 1px solid var(--line-accent);
+  border-radius: var(--r-lg);
+  background: var(--accent-wash);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.cta-band p { color: var(--text-dim); margin-top: 0.4rem; max-width: 48ch; }
+
+/* Секция сразу под шапкой страницы: верхний отступ уже задан .page-head */
+.section--flush { padding-top: 0; }
+
+
+/* ==========================================================================
+   9. О НАС
+   Семейство раскладки: полоса фотографий во всю ширину окна и текстовая
+   карточка, наезжающая на её нижний край. Больше нигде на сайте такого нет.
+   ========================================================================== */
+
+.about__band {
+  /* Выход за пределы .shell на всю ширину окна. У body стоит overflow-x: clip,
+     поэтому горизонтальной прокрутки от этого не возникает. */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+.about__band .media { --ratio: 4 / 3; border-radius: 0; }
+
+.about__card {
+  position: relative;
+  z-index: var(--z-base);
+  margin-top: clamp(-4.5rem, -6vw, -2rem);
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+.about__text > p + p { margin-top: 1rem; }
+.about__text p { color: var(--text-dim); }
+
+/* Три факта с сайта заказчика. Не карточки: достаточно линии и отступа. */
+.about__facts { display: grid; gap: 1.1rem; }
+.about__fact {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  align-items: start;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+.about__fact:first-child { padding-top: 0; border-top: 0; }
+.about__fact .icon { color: var(--accent); margin-top: 0.15rem; }
+.about__fact b { display: block; font-weight: 600; font-size: 0.98rem; }
+.about__fact span { font-size: 0.9rem; color: var(--text-mute); }
+
+@media (max-width: 900px) {
+  .about__card { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  /* На узком экране три кадра в ряд превращаются в марки: оставляем один. */
+  .about__band { grid-template-columns: 1fr; gap: 0; }
+  .about__band .media:nth-child(n+2) { display: none; }
+  .about__band .media { --ratio: 16 / 10; }
+}
+
+/* ==========================================================================
+   10. ВИДЕО
+   Семейство раскладки: равномерная сетка 16 к 9. Отличается и от мозаики
+   работ, и от блога: здесь все плитки одного размера, потому что у видео
+   один естественный формат кадра.
+   ========================================================================== */
+
+.video__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+}
+.vid { display: flex; flex-direction: column; gap: 0.85rem; }
+.vid .media { --ratio: 16 / 9; }
+
+/* Бейдж воспроизведения. Обоснование: без него постер не отличить
+   от обычной фотографии. */
+.vid__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.vid__play span {
+  display: grid;
+  place-items: center;
+  width: 64px; height: 64px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--dur) var(--ease), background var(--dur-fast) var(--ease-out);
+}
+.media-btn:hover .vid__play span { transform: scale(1.08); background: var(--accent-hi); }
+.vid__play svg { width: 26px; height: 26px; margin-left: 3px; }
+
+.vid__caption { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.vid__name { font-weight: 600; font-size: 0.98rem; }
+.vid__meta { font-size: 0.85rem; color: var(--text-mute); white-space: nowrap; }
+
+/* Пустое состояние занимает всю сетку, а не одну ячейку из двух:
+   иначе сообщение висит в левой половине и выглядит как сломанная плитка. */
+.video__grid .empty { grid-column: 1 / -1; }
+
+@media (max-width: 720px) {
+  .video__grid { grid-template-columns: 1fr; }
+}

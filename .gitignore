@@ -1,3 +1,24 @@
+# Локальная конфигурация: доступы к БД и base_url. В git не хранится.
+/config/config.php
+
+# Загруженные через админку файлы. Сами каталоги остаются через .gitkeep.
+# Стартовый контент лежит отдельно, в database/seed-media, и копируется
+# сюда скриптом database/seed.php.
+/public/uploads/*
+!/public/uploads/.htaccess
+!/public/uploads/services/
+!/public/uploads/reviews/
+!/public/uploads/blog/
+!/public/uploads/works/
+!/public/uploads/videos/
+!/public/uploads/about/
+/public/uploads/*/*
+!/public/uploads/*/.gitkeep
+
+# IDE / система
+/.idea/
+/.vscode/
+*.log
 .DS_Store
 Thumbs.db
 node_modules/

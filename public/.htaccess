@@ -1,0 +1,25 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Не трогаем реально существующие файлы и каталоги
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Всё остальное — на front controller
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Заголовки безопасности для всех ответов, включая статику из /uploads
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+</IfModule>
+
+# Каталоги без листинга
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
