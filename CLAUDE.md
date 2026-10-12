@@ -52,18 +52,20 @@
 ## 2. Запуск за 5 шагов
 
 ```bash
-git clone -b admin-panel https://github.com/MiStre13/Altus.git AdminPanel
-cd AdminPanel
+git clone https://github.com/F31-EXE/altus.git
+cd altus
 cp config/config.example.php config/config.php        # заполнить доступы к БД
-mysql -u root -e "CREATE DATABASE adminpanel CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root adminpanel < database/schema.sql
+php database/install.php                              # база и таблицы, консольный mysql не нужен
+php database/seed.php                                 # стартовый контент сайта
 php database/create_admin.php "Имя" admin@example.com пароль-минимум-10-символов
+php -S 127.0.0.1:8000 -t public public/router.php     # локально без Apache
 ```
 
 - **Docroot = `public/`** (строго). Всё остальное (`app/`, `config/`, `database/`) вне вебрута.
 - `config/config.php` в git **не хранится** — создаётся из `config.example.php`.
-- Локально удобно через Laragon: положить в `C:\laragon\www\AdminPanel`, хост `adminpanel.test` поднимется сам.
-- Открыть: админка — `/` (редирект на `/login`), демо витрины — `/site`.
+- Локально удобно через Laragon: положить в `C:\laragon\www\altus`, хост `altus.test` поднимется сам.
+- Открыть: сайт — `/`, админка — `/admin` (редирект на `/admin/login`), демо витрины — `/site`.
+- Чистый сервер Debian/Ubuntu: `sudo bash deploy/server-setup.sh домен`, подробности в `README.md`.
 
 ### config/config.php — что менять
 
@@ -92,18 +94,24 @@ php database/create_admin.php "Имя" admin@example.com пароль-миним
 public/
   index.php            front controller
   .htaccess            pretty-URL rewrite + security-заголовки
-  assets/{css,js}      стили/скрипты админки и демо-витрины
+  router.php           роутер для php -S, на боевом сервере не нужен
+  assets/{css,js,fonts,icons,img}  сайт
+  assets/admin/{css,js}            админка и демо-витрина
   uploads/<section>/   загруженные файлы (в git не идут, кроме .gitkeep/.htaccess)
 app/
   bootstrap.php        константы, автозагрузка, сессия, security-заголовки, таймаут сессии
   routes.php           ВСЕ маршруты (public + admin)
   Core/                Router, Database, Controller, Auth, Csrf, Flash, Request,
                        Validator, Upload, HtmlSanitizer, LoginThrottle, helpers.php
-  Controllers/         Auth, Dashboard, User, Service, Review, Blog, Work, Video, About, Site
-  Models/              Model (база), User, Service, Review, Post, Work, Video, About
-  Views/               layout.php (админка), site/layout.php (витрина), <section>/{index,form}.php
+  Controllers/         Public (сайт, robots.txt, sitemap.xml), Lead (приём заявок),
+                       Auth, Dashboard, User, Service, Review, Blog, Work, Video, About,
+                       LeadsAdmin, Site (демо)
+  Models/              Model (база), User, Service, Review, Post, Work, Video, About, Lead
+  Views/               front/ (сайт), layout.php (админка), site/ (демо-витрина),
+                       <section>/{index,form}.php
 config/                config.php (локально) + config.example.php
-database/              schema.sql, create_admin.php (CLI)
+database/              install.php, schema.sql, seed.php, seed-media/, create_admin.php (CLI)
+deploy/                server-setup.sh, развёртывание на чистом сервере
 ```
 
 ---
@@ -377,6 +385,6 @@ add_header Referrer-Policy strict-origin-when-cross-origin always;
 
 ## 9. Git
 
-Ветка: **`admin-panel`** (`https://github.com/MiStre13/Altus.git`). В репозитории только она.
+Репозиторий: `https://github.com/F31-EXE/altus`.
 `config/config.php` и загруженные медиа в git не попадают (см. `.gitignore`).
-Атрибуция коммитов от Claude: `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`.
+Атрибуция коммитов от Claude: строки `Co-Authored-By` и `Claude-Session`, которые выдаёт текущая сессия.

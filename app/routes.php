@@ -23,6 +23,8 @@ $router->get('/blog',         [PublicController::class, 'blogIndex']);
 $router->get('/privacy',      [PublicController::class, 'privacy']);
 $router->get('/terms',        [PublicController::class, 'terms']);
 $router->get('/blog/{slug}',  [PublicController::class, 'blogShow']);
+$router->get('/robots.txt',   [PublicController::class, 'robots']);
+$router->get('/sitemap.xml',  [PublicController::class, 'sitemap']);
 
 // Приём заявок с контактной формы
 $router->post('/api/lead',    [LeadController::class, 'store']);
